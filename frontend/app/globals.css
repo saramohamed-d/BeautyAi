@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-arabic: "Cairo", system-ui, sans-serif;
+}
+
+/*
+  Design note: we rely on the native `dir` attribute (set on <html> in
+  layout.tsx based on locale) rather than a CSS-only RTL hack. Tailwind's
+  logical-property utilities (ms-*, me-*, ps-*, pe-*, text-start, text-end)
+  should be preferred over directional ones (ml-*, mr-*, text-left,
+  text-right) throughout the app so components flip correctly for Arabic
+  without duplicate styles. This becomes important starting Sprint 3/4
+  when real layouts are built.
+*/
+
+body {
+  min-height: 100dvh;
+}

@@ -12,6 +12,14 @@ integration test of the wiring in main.py, not just unit tests of
 individual functions.
 """
 
+import os
+
+# Must be set before `app.db.session` is imported anywhere (including
+# transitively via `app.main`), since it decides the DB connection pool
+# strategy (see app/db/session.py's NullPool note).
+
+os.environ["APP_ENV"] = "test"
+
 from collections.abc import AsyncGenerator
 
 import pytest

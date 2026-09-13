@@ -42,7 +42,29 @@ See root `README.md` for the top-level tree. Backend packages
 the intended architecture is visible from the file tree from day one,
 even though most of them have no code yet.
 
-## Open decisions (flagged, not yet made)
+## Sprint 1: database schema
+
+Full ERD, relationship rationale, and constraint list now live in
+[`docs/database.md`](database.md) (kept there so schema details aren't
+duplicated across two docs). Summary of what changed vs. Sprint 0:
+
+- 17 tables across 8 model modules (`app/models/*.py`), all UUID-keyed,
+  all timestamped, wired into one initial Alembic migration.
+- Every relationship required by the spec (patients → consents →
+  conversations → messages/intakes; doctors ↔ clinics ↔ procedures;
+  availability → appointments; knowledge documents → chunks; safety/audit
+  logs) is modeled with explicit foreign keys, cascade rules, and — where
+  the spec implies a hard business rule (no double-booking, no duplicate
+  idempotent bookings, no duplicate doctor-procedure-clinic combos) — a
+  `UNIQUE` or `CHECK` constraint enforced by Postgres itself, not just
+  application code.
+- Verified with: `alembic upgrade head` → `alembic downgrade base` →
+  `alembic upgrade head` round trip (including enum type cleanup), a seed
+  script producing realistic Egyptian clinic/doctor/patient data, and 12
+  pytest tests that exercise cascades and constraint violations against a
+  real Postgres instance.
+
+
 
 - **i18n / locale routing strategy** (e.g. `/ar`, `/en` route prefixes vs.
   a single Arabic-first UI with an English toggle) — deferred to Sprint 3/4.

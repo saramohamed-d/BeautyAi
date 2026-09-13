@@ -21,9 +21,9 @@ from sqlalchemy import engine_from_config, pool
 from app.core.config import get_settings
 from app.db.session import Base
 
-# Sprint 1+ will import model modules here so their tables are registered
-# on Base.metadata before autogenerate runs, e.g.:
-#   from app.models import patient, doctor, clinic  # noqa: F401
+# Importing app.models registers every model class on Base.metadata,
+# which is what makes `alembic revision --autogenerate` able to see them.
+import app.models  # noqa: F401,E402
 
 config = context.config
 settings = get_settings()

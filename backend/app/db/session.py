@@ -26,17 +26,27 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 
 settings = get_settings()
 
-engine = create_async_engine(
-    settings.database_url,
-    echo=settings.debug and settings.app_env == "local",
-    pool_pre_ping=True,  # detects and discards dead connections before use
-    future=True,
-)
+# Design note: the test suite creates/tears down an event loop per test
+# function (pytest-asyncio's default scope), but asyncpg connections are
+# bound to the event loop they were created in. A pooled engine would try
+# to reuse a connection from a prior test's (now-closed) loop and blow up
+# with "attached to a different loop". NullPool sidesteps this by never
+# holding a connection open between checkouts — acceptable for tests
+# (low concurrency, correctness > pool efficiency); the app still gets a
+# real connection pool in local/staging/production.
+_engine_kwargs = {"echo": settings.debug and settings.app_env == "local", "future": True}
+if settings.app_env == "test":
+    _engine_kwargs["poolclass"] = NullPool
+else:
+    _engine_kwargs["pool_pre_ping"] = True
+
+engine = create_async_engine(settings.database_url, **_engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

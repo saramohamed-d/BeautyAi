@@ -91,18 +91,21 @@ npm run dev
 
 ## Database migrations (Alembic)
 
-No models exist yet (Sprint 1). Once they do:
+The Sprint 1 initial migration creates all 17 tables:
 
 ```bash
 cd backend
-alembic revision --autogenerate -m "add patients table"
-alembic upgrade head
+alembic upgrade head        # apply the schema
+python -m app.db.seed       # populate realistic dev data
 ```
+
+See [`docs/database.md`](docs/database.md) for the full schema reference,
+conventions, and constraint list.
 
 ## Running tests
 
-Tests are integration tests that hit the real `/health` endpoint, which
-pings Postgres and Redis — so the database and cache need to be running:
+Tests need Postgres and Redis reachable (either via `docker compose up -d
+postgres redis`, or local installs), and the schema migrated:
 
 ```bash
 cd infra
@@ -111,10 +114,18 @@ docker compose up -d postgres redis
 cd ../backend
 python -m venv .venv && source .venv/bin/activate   # if not already active
 pip install -r requirements.txt
-pytest -v
+alembic upgrade head
+APP_ENV=test pytest -v
 ```
 
-Expected output: 3 passing tests (`test_health.py`).
+`APP_ENV=test` switches the DB engine to a `NullPool` (see
+`app/db/session.py`) so pytest-asyncio's per-test event loops don't reuse
+asyncpg connections across loops — a real (not sqlite/mocked) Postgres
+connection either way.
+
+Expected output: **15 passing tests** — 3 for `/health` (Sprint 0), 12 for
+model relationships/constraints (Sprint 1: cascades, uniqueness, CHECK
+constraints, defaults).
 
 ## Documentation
 

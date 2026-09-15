@@ -2,21 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-arabic: "Cairo", system-ui, sans-serif;
-}
-
 /*
-  Design note: we rely on the native `dir` attribute (set on <html> in
-  layout.tsx based on locale) rather than a CSS-only RTL hack. Tailwind's
-  logical-property utilities (ms-*, me-*, ps-*, pe-*, text-start, text-end)
-  should be preferred over directional ones (ml-*, mr-*, text-left,
-  text-right) throughout the app so components flip correctly for Arabic
-  without duplicate styles. This becomes important starting Sprint 3/4
-  when real layouts are built.
+  One typeface (Cairo) carries both Arabic and Latin text — weight does
+  the work of hierarchy (600/700 for headings, 400 for body) rather than
+  mixing in a second display face. This is deliberate for a bilingual,
+  Arabic-first, RTL-native product: pairing fonts across scripts is a
+  common source of visual mismatch, and Cairo's Latin glyphs are strong
+  enough to not need a second family for English fallback content.
 */
 
 body {
   min-height: 100dvh;
+  background-color: #fbf7f4;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced-motion preferences for the one deliberate motion
+   moment we use (hero entrance) — see app/page.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Visible keyboard focus ring everywhere, in the brand color rather than
+   the browser default blue, without removing focus outlines. */
+:focus-visible {
+  outline: 2px solid #9c5b6e;
+  outline-offset: 2px;
 }

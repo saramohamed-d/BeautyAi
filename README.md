@@ -3,16 +3,36 @@
 AI-powered multi-agent platform connecting patients with verified aesthetic
 and dermatology doctors and clinics in Egypt and the Arab world.
 
-> **Status: Sprint 0 — Project Foundation.**
-> Only infrastructure exists at this stage: Docker Compose, FastAPI skeleton,
-> Next.js skeleton, database wiring, health checks, logging, and tests.
-> No agents, RAG, matching, or booking logic exist yet — see
-> `docs/architecture.md` for the full roadmap.
+> **Status: Sprint 17 — security, privacy and deployment. All 17 sprints complete.**
+> Patients get a short AI consultation (English or Arabic) with a
+> preliminary assessment, answers from a reviewed article library with
+> sources, emergency screening before any AI call, and a booking agent
+> ("book me tomorrow at 5 PM") that offers real times and books only when
+> the patient confirms. Consultation fees are paid by card or mobile
+> wallet through Paymob (a demo gateway locally) or at the clinic; an
+> appointment is booked only once the payment is confirmed. Doctors can
+> join, upload their licence and ID and be approved or rejected by a
+> platform admin — until then they're invisible to patients. Clinics run
+> their own dashboard: team, services and prices, opening hours, published
+> times and appointments. The platform team has its own dashboard too:
+> reports, the verification queue, payments and refunds, user accounts and
+> an audit log. Patients get booking confirmations, a reminder the day
+> before, a receipt and an aftercare follow-up by email, SMS or WhatsApp.
+> The AI features are measured by a command against English and Arabic
+> test sets, with a release gate on red-flag recall. Passwords can be
+> reset, contact details verified, requests are rate limited, and patients
+> can download or delete their data. Also:
+> accounts and permissions, concurrency-safe booking with holds,
+> cancellation policies and rescheduling, and doctor search.
+>
+> **Not deployed anywhere yet** — see
+> [`docs/deployment.md`](docs/deployment.md) for what a real launch still
+> needs (host, TLS, provider accounts, backups, monitoring).
 
 ## Stack
 
 - **Backend:** Python 3.12, FastAPI, SQLAlchemy (async), Alembic, PostgreSQL (pgvector), Redis
-- **AI (future sprints):** OpenAI API, LangGraph, LangChain
+- **AI:** OpenAI Responses API (structured output) behind a provider interface; an offline demo provider for local development. See [`docs/agents.md`](docs/agents.md)
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, TanStack Query
 - **Infra:** Docker Compose
 
@@ -91,13 +111,29 @@ npm run dev
 
 ## Database migrations (Alembic)
 
-The Sprint 1 initial migration creates all 17 tables:
-
 ```bash
 cd backend
-alembic upgrade head        # apply the schema
-python -m app.db.seed       # populate realistic dev data
+alembic upgrade head        # apply the schema (19 tables)
+python -m app.db.seed       # populate realistic dev data + dev logins
 ```
+
+The seed also loads the article library from `data/knowledge/` (approved
+locally as "Development sample — not clinically reviewed"; see
+[`docs/rag.md`](docs/rag.md)). It creates one login per role, all with the password
+`beautyai-dev-2026`:
+
+| Role | Log in with |
+|---|---|
+| Patient | `nour.mohamed@example.com` or `+201555001122` |
+| Patient | `omar.abdelrahman@example.com` |
+| Doctor | `dr.amira.hassan@example.com` |
+| Clinic admin | `yasmin.adel@newlook-zamalek.example.com` |
+| Platform admin | `admin@beautyai.example.com` |
+
+For a real deployment, create the first admin with
+`python -m app.scripts.create_admin you@example.com` (prompts for a password),
+and load reviewed articles with
+`python -m app.rag.cli ingest --approve --reviewer "Dr Name"`.
 
 See [`docs/database.md`](docs/database.md) for the full schema reference,
 conventions, and constraint list.
@@ -123,23 +159,43 @@ APP_ENV=test pytest -v
 asyncpg connections across loops — a real (not sqlite/mocked) Postgres
 connection either way.
 
-Expected output: **15 passing tests** — 3 for `/health` (Sprint 0), 12 for
-model relationships/constraints (Sprint 1: cascades, uniqueness, CHECK
-constraints, defaults).
+Expected output: **351 passing tests**, covering health checks, model
+constraints, every CRUD endpoint, login/session handling
+(`test_auth_api.py`), role-based permissions (`test_permissions.py`),
+booking rules including concurrency (`test_booking_rules.py`), doctor
+search (`test_doctor_search.py`), the chat's safety rules
+(`test_safety_rules.py`), the chat itself (`test_chat_api.py`), the AI
+provider (`test_llm_provider.py`), the knowledge library and search
+(`test_knowledge.py`), the consultation checklist (`test_consultation.py`)
+the booking agent (`test_booking_agent.py`), payments
+(`test_payments.py`), doctor verification
+(`test_doctor_verification.py`), the clinic dashboard
+(`test_clinic_admin.py`), the platform admin dashboard
+(`test_admin.py`), notifications (`test_notifications.py`), the AI
+evaluation harness (`test_evaluation.py`) and account security
+(`test_account_security.py`). No API key is needed: tests use
+the offline demo AI or a scripted stand-in.
 
 ## Documentation
 
 - [`docs/architecture.md`](docs/architecture.md) — system architecture, sprint roadmap
+- [`docs/design.md`](docs/design.md) — design tokens, components, English/Arabic
 - [`docs/database.md`](docs/database.md) — schema design (populated from Sprint 1)
 - [`docs/api.md`](docs/api.md) — API reference (grows each sprint)
-- [`docs/agents.md`](docs/agents.md) — LangGraph agents (from Sprint 5)
-- [`docs/rag.md`](docs/rag.md) — RAG pipeline (from Sprint 8)
-- [`docs/security.md`](docs/security.md) — security & privacy posture
-- [`docs/evaluation.md`](docs/evaluation.md) — evaluation datasets & metrics
-- [`docs/deployment.md`](docs/deployment.md) — deployment guide (from Sprint 20)
+- [`docs/agents.md`](docs/agents.md) — AI chat, safety rules, model configuration
+- [`docs/rag.md`](docs/rag.md) — knowledge library, review workflow, hybrid search
+- [`docs/payments.md`](docs/payments.md) — Paymob checkout, webhooks, refunds, demo gateway
+- [`docs/verification.md`](docs/verification.md) — doctor sign-up, documents, approve/reject
+- [`docs/clinic-admin.md`](docs/clinic-admin.md) — clinic team, hours, published times, prices
+- [`docs/admin.md`](docs/admin.md) — platform reports, user administration, audit log
+- [`docs/notifications.md`](docs/notifications.md) — reminders, receipts, aftercare, providers
+- [`docs/security.md`](docs/security.md) — authentication design and the permission table
+- [`docs/evaluation.md`](docs/evaluation.md) — AI evaluation suites, thresholds, how to run them
+- [`docs/deployment.md`](docs/deployment.md) — production stack, launch checklist
+- [`docs/privacy.md`](docs/privacy.md) — what's held, data rights, PDPL review
 
 ## Sprint roadmap
 
-See `docs/architecture.md` for the full 21-sprint roadmap (Sprint 0 → Sprint 20).
+See `docs/architecture.md` for the roadmap (Sprint 0 → Sprint 17).
 Development proceeds one sprint at a time; each sprint is scoped, reviewed,
 and explicitly approved before the next begins.

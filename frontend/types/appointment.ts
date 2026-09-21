@@ -12,6 +12,10 @@ export interface Appointment {
   scheduled_end: string;
   idempotency_key?: string | null;
   notes?: string | null;
+  /** Last moment the patient may cancel or reschedule online (clinic policy). */
+  cancellable_until?: string | null;
+  cancelled_at?: string | null;
+  cancellation_reason?: string | null;
   created_at: string;
   updated_at: string;
 }

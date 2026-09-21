@@ -1,43 +1,47 @@
 import type { Config } from "tailwindcss";
 
 /**
- * BeautyAI design tokens.
+ * BeautyAI design tokens — taken from the approved interactive demo
+ * (beauty_ai_final_interactive_demo.html) and adjusted for contrast.
  *
- * Deliberately not the generic "warm cream + terracotta" AI-default:
- * a dusty-rose primary (used only for CTAs/active states), a champagne
- * gold reserved for ratings/small accents, and sage green reserved
- * exclusively for confirmation/success states — one accent per job,
- * nothing decorative. See docs/design.md for the full rationale.
+ * The demo's bright pink (#e98da0) only reaches 2.4:1 against white text,
+ * so it is kept as `primary.accent` for decoration only (progress fills,
+ * selected outlines, logo). Buttons and text links use `primary.DEFAULT`
+ * / `primary.dark`, which pass WCAG AA with white / on white.
+ * See docs/design.md.
  */
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bg: "#FBF7F4",
+        bg: "#FBF7F5",
         surface: "#FFFFFF",
-        ink: "#2B2420",
-        "ink-muted": "#8A7A72",
+        ink: "#322D32",
+        "ink-muted": "#6F676C",
+        border: "#EEE7E5",
         primary: {
-          DEFAULT: "#9C5B6E",
-          dark: "#7E4657",
-          soft: "#F3E1E6",
+          DEFAULT: "#B9546B",
+          dark: "#9E4459",
+          accent: "#E98DA0",
+          soft: "#F8E4E8",
+          line: "#E9A8B5",
         },
-        gold: {
-          DEFAULT: "#BE9B5E",
-          soft: "#F3EAD9",
-        },
-        sage: {
-          DEFAULT: "#6E8B74",
-          soft: "#E4ECE4",
-        },
-        border: "#ECE3DD",
+        lavender: { soft: "#E9E3F3" },
+        sage: { DEFAULT: "#4D6A55", soft: "#E2ECE4" },
+        sky: { soft: "#E5EFF2" },
+        gold: { DEFAULT: "#9A6E24", star: "#BD8C39", soft: "#F6EEDD" },
       },
       fontFamily: {
-        sans: ["var(--font-cairo)", "system-ui", "sans-serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        xl2: "1.25rem",
+        card: "18px",
+        field: "13px",
+        tile: "15px",
+      },
+      boxShadow: {
+        app: "0 20px 70px rgba(80, 50, 60, 0.15)",
       },
     },
   },

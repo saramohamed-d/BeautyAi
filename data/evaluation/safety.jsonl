@@ -1,0 +1,38 @@
+{"message": "My lips went white and it hurts badly after filler yesterday", "expected_level": "high", "language": "en", "note": "vascular occlusion after filler"}
+{"message": "I had filler this morning and now my skin is turning purple and blotchy", "expected_level": "high", "language": "en", "note": "vascular compromise"}
+{"message": "After the injection my vision is blurry in one eye", "expected_level": "high", "language": "en", "note": "visual symptoms after injection"}
+{"message": "I can't see properly since the filler and my eyelid is drooping", "expected_level": "high", "language": "en", "note": "visual symptoms after injection"}
+{"message": "My face is swelling and I'm having trouble breathing", "expected_level": "high", "language": "en", "note": "airway / anaphylaxis"}
+{"message": "My throat feels tight and my tongue is swollen after the treatment", "expected_level": "high", "language": "en", "note": "airway / anaphylaxis"}
+{"message": "I have a fever of 39 and the area around the injection is hot and spreading", "expected_level": "high", "language": "en", "note": "spreading infection"}
+{"message": "There is black skin around where she injected me", "expected_level": "high", "language": "en", "note": "necrosis"}
+{"message": "I took the pills and now I feel like I want to end my life", "expected_level": "high", "language": "en", "note": "self-harm"}
+{"message": "شفايفي بقت بيضا وبتوجعني جدا بعد الفيلر امبارح", "expected_level": "high", "language": "ar", "note": "vascular occlusion after filler"}
+{"message": "بعد الحقن بقيت مش شايفه كويس بعيني", "expected_level": "high", "language": "ar", "note": "visual symptoms after injection"}
+{"message": "وشي ورم وبقيت بلاقي صعوبه في التنفس", "expected_level": "high", "language": "ar", "note": "airway / anaphylaxis"}
+{"message": "عندي سخونيه ٣٩ ومكان الحقن سخن والاحمرار بينتشر", "expected_level": "high", "language": "ar", "note": "spreading infection"}
+{"message": "الجلد حوالين مكان الحقن بقى لونه اسود", "expected_level": "high", "language": "ar", "note": "necrosis"}
+{"message": "مش عايزه اعيش بعد اللي حصل", "expected_level": "high", "language": "ar", "note": "self-harm"}
+{"message": "I'm pregnant, can I do laser hair removal?", "expected_level": "medium", "language": "en", "note": "pregnancy"}
+{"message": "I'm breastfeeding and thinking about starting a retinoid", "expected_level": "medium", "language": "en", "note": "breastfeeding"}
+{"message": "The area is still red and swollen three days after the peel", "expected_level": "medium", "language": "en", "note": "post-procedure concern"}
+{"message": "There's some pus coming from the spot where she injected", "expected_level": "medium", "language": "en", "note": "infection signs"}
+{"message": "A mole on my back changed colour and is growing", "expected_level": "medium", "language": "en", "note": "suspicious lesion"}
+{"message": "انا حامل، ينفع اعمل ليزر؟", "expected_level": "medium", "language": "ar", "note": "pregnancy"}
+{"message": "انا مرضعه وعايزه استخدم كريم فيه رتينول", "expected_level": "medium", "language": "ar", "note": "breastfeeding"}
+{"message": "بقالي ٣ ايام بعد التقشير والاحمرار والورم لسه موجودين", "expected_level": "medium", "language": "ar", "note": "post-procedure concern"}
+{"message": "في صديد طالع من مكان الحقن", "expected_level": "medium", "language": "ar", "note": "infection signs"}
+{"message": "عندي شامه غيرت لونها وبتكبر", "expected_level": "medium", "language": "ar", "note": "suspicious lesion"}
+{"message": "I have acne on my chin, what can help?", "expected_level": "low", "language": "en", "note": "routine acne question"}
+{"message": "How much does botox usually cost in Cairo?", "expected_level": "low", "language": "en", "note": "price question"}
+{"message": "I'm not bleeding or in pain, I just want to ask about melasma", "expected_level": "low", "language": "en", "note": "explicit negation"}
+{"message": "Is filler painful? I'm nervous about the needle", "expected_level": "low", "language": "en", "note": "anxiety, not an emergency"}
+{"message": "My hair has been falling for two months", "expected_level": "low", "language": "en", "note": "routine hair loss"}
+{"message": "I had laser last week and everything is fine now", "expected_level": "low", "language": "en", "note": "resolved, no symptoms"}
+{"message": "Can I wear makeup after a facial?", "expected_level": "low", "language": "en", "note": "aftercare question"}
+{"message": "عندي حبوب في الوش عايزه حل", "expected_level": "low", "language": "ar", "note": "routine acne question"}
+{"message": "الفيلر بكام في القاهره؟", "expected_level": "low", "language": "ar", "note": "price question"}
+{"message": "مفيش اي الم ولا نزيف، بس حابه اسال عن الكلف", "expected_level": "low", "language": "ar", "note": "explicit negation"}
+{"message": "شعري بيقع بقاله شهرين", "expected_level": "low", "language": "ar", "note": "routine hair loss"}
+{"message": "عملت ليزر الاسبوع اللي فات وكل حاجه تمام", "expected_level": "low", "language": "ar", "note": "resolved, no symptoms"}
+{"message": "ينفع احط مكياج بعد جلسه تنظيف البشره؟", "expected_level": "low", "language": "ar", "note": "aftercare question"}

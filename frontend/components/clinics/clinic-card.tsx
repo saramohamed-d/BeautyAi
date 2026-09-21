@@ -1,32 +1,27 @@
+"use client";
+
 import Link from "next/link";
-import { MapPin, Building2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Building2, MapPin } from "lucide-react";
 import type { Clinic } from "@/types/clinic";
 
 export function ClinicCard({ clinic }: { clinic: Clinic }) {
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-soft text-ink">
-          <Building2 className="h-5 w-5" strokeWidth={1.75} />
-        </div>
-        <div>
-          <p className="font-semibold text-ink">{clinic.name}</p>
-          <p className="flex items-center gap-1 text-sm text-ink-muted">
-            <MapPin className="h-3.5 w-3.5" />
-            {clinic.city}، {clinic.country}
-          </p>
-        </div>
+    <Link
+      href={`/clinics/${clinic.id}`}
+      className="flex items-center gap-[11px] rounded-card border border-border bg-surface p-3 transition-colors hover:border-primary-line"
+    >
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-sage-soft text-sage">
+        <Building2 className="h-5 w-5" strokeWidth={1.75} />
       </div>
-
-      {clinic.description && <p className="line-clamp-2 text-sm text-ink-muted">{clinic.description}</p>}
-
-      <div className="flex justify-end">
-        <Link href={`/clinics/${clinic.id}`}>
-          <Button variant="secondary" size="sm">عرض العيادة</Button>
-        </Link>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-ink">{clinic.name}</p>
+        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-muted">
+          <MapPin className="h-3 w-3 shrink-0" />
+          {clinic.address ? `${clinic.address} · ` : ""}
+          {clinic.city}
+        </p>
+        {clinic.description && <p className="mt-1 line-clamp-1 text-xs text-ink-muted">{clinic.description}</p>}
       </div>
-    </Card>
+    </Link>
   );
 }

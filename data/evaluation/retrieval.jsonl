@@ -1,0 +1,15 @@
+{"query": "What helps with acne on the chin?", "language": "en", "expected_slugs": ["acne"]}
+{"query": "Why do I keep getting breakouts?", "language": "en", "expected_slugs": ["acne"]}
+{"query": "What is melasma and what makes it worse?", "language": "en", "expected_slugs": ["melasma", "sun-protection"]}
+{"query": "Dark patches on my cheeks after summer", "language": "en", "expected_slugs": ["melasma"]}
+{"query": "My hair is thinning, what are the common causes?", "language": "en", "expected_slugs": ["hair-loss"]}
+{"query": "Is filler safe? What should I ask before injections?", "language": "en", "expected_slugs": ["injectables-safety"]}
+{"query": "What are the warning signs after an injectable treatment?", "language": "en", "expected_slugs": ["injectables-safety"]}
+{"query": "My face is red and flushes easily", "language": "en", "expected_slugs": ["redness"]}
+{"query": "How should I use sunscreen every day?", "language": "en", "expected_slugs": ["sun-protection"]}
+{"query": "ايه اللي بيساعد في حب الشباب؟", "language": "ar", "expected_slugs": ["acne"]}
+{"query": "ايه هو الكلف وايه اللي بيزوده؟", "language": "ar", "expected_slugs": ["melasma", "sun-protection"]}
+{"query": "شعري بيخف، ايه الاسباب الشائعه؟", "language": "ar", "expected_slugs": ["hair-loss"]}
+{"query": "الفيلر امن؟ اسال عن ايه قبل الحقن؟", "language": "ar", "expected_slugs": ["injectables-safety"]}
+{"query": "وشي بيحمر بسرعه، ايه السبب؟", "language": "ar", "expected_slugs": ["redness"]}
+{"query": "ازاي استخدم واقي الشمس صح؟", "language": "ar", "expected_slugs": ["sun-protection"]}

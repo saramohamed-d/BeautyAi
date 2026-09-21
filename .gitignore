@@ -32,3 +32,6 @@ data/processed/*
 
 # --- Logs ---
 *.log
+
+# --- Uploaded verification documents (never committed) ---
+backend/var/

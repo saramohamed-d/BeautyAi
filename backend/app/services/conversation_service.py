@@ -17,7 +17,7 @@ async def create_conversation(db: AsyncSession, data: ConversationCreate) -> Con
         if patient is None:
             raise NotFoundError(f"Patient '{data.patient_id}' not found")
 
-    conversation = Conversation(**data.model_dump())
+    conversation = Conversation(**data.model_dump(exclude={"accept_ai_terms"}))
     db.add(conversation)
     await db.commit()
     await db.refresh(conversation)

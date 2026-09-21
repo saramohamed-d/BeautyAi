@@ -47,6 +47,8 @@ services:
       - "8000:8000"
     volumes:
       - ../backend:/app
+      # Knowledge articles (read-only), found by app/rag/ingest.py at /data/knowledge.
+      - ../data/knowledge:/data/knowledge:ro
     depends_on:
       postgres:
         condition: service_healthy

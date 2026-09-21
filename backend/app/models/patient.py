@@ -14,6 +14,12 @@ from app.models.enums import ConsentType, Language
 class Patient(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "patients"
 
+    # Login identity, if this patient has an account. Nullable so a
+    # profile can exist without a login (e.g. a walk-in registered by a
+    # clinic); unique so one account owns at most one patient profile.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), unique=True, nullable=True
+    )
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     # Phone is the primary identifier for patients in this market (WhatsApp-first,
     # per the roadmap's Sprint 17). Unique + indexed since it's the main lookup key.
@@ -21,6 +27,13 @@ class Patient(Base, UUIDPkMixin, TimestampMixin):
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # Which channels this patient wants (Sprint 15). Email and SMS are on
+    # by default; WhatsApp is opt-in because it needs an accepted template
+    # and a business account.
+    notify_email: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    notify_sms: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    notify_whatsapp: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     preferred_language: Mapped[Language] = mapped_column(
         SAEnum(Language, name="language", values_callable=lambda e: [m.value for m in e]),
         nullable=False,

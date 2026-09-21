@@ -1,94 +1,133 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogIn } from "lucide-react";
+import { Page } from "@/components/layout/page";
+import { Logo } from "@/components/layout/logo";
+import { LanguageToggle } from "@/components/layout/language-toggle";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { usePatientContext } from "@/lib/patient-context";
-import { searchPatientsByPhone } from "@/services/patient-service";
+import { Button, LinkButton } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/provider";
+import { safeNext, withNext } from "@/lib/safe-next";
 import { ApiError } from "@/lib/api-client";
 
 const schema = z.object({
-  phone: z.string().regex(/^\+?[0-9]{8,15}$/, "رقم الهاتف غير صحيح"),
+  identifier: z.string().trim().min(3),
+  password: z.string().min(1),
 });
 type FormValues = z.infer<typeof schema>;
 
-/**
- * UI-ONLY login. There is no password, no session, no JWT — Sprint 3
- * excludes backend authentication entirely per the brief. This form
- * looks up a real Patient row by phone through Sprint 2's API and, if
- * found, sets it as the in-memory "current patient" (see
- * lib/patient-context.tsx). This is a placeholder identity mechanism,
- * not a security boundary — it should not be mistaken for real auth by
- * anyone reading this code.
- */
-export default function LoginPage() {
+function LoginContent() {
+  const { t } = useI18n();
   const router = useRouter();
-  const { setPatient } = usePatientContext();
-  const [notFound, setNotFound] = useState(false);
+  const next = useSearchParams().get("next");
+  const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   async function onSubmit(values: FormValues) {
-    setIsSubmitting(true);
     setError(null);
-    setNotFound(false);
     try {
-      const results = await searchPatientsByPhone(values.phone);
-      const match = results.items.find((p) => p.phone === values.phone);
-      if (!match) {
-        setNotFound(true);
-        return;
-      }
-      setPatient(match);
-      router.push("/account");
+      const me = await login(values.identifier, values.password);
+      // Staff without a `next` belong on their own dashboard, not the patient home.
+      const home =
+        me.user.role === "platform_admin"
+          ? "/admin"
+          : me.user.role === "doctor"
+            ? "/doctor"
+            : (me.clinics ?? []).length > 0
+              ? "/clinic"
+              : safeNext(null);
+      router.push(next ? safeNext(next) : home);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "حدث خطأ. حاولي مرة أخرى.");
-    } finally {
-      setIsSubmitting(false);
+      if (err instanceof ApiError && err.status === 401) setError(t("login.invalid"));
+      else if (err instanceof ApiError && err.status === 403) setError(t("login.blocked"));
+      else setError(t("errors.generic"));
     }
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-12 md:px-6">
-      <div className="rounded-3xl border border-border bg-surface p-8">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <LogIn className="h-8 w-8 text-primary" strokeWidth={1.5} />
-          <h1 className="text-2xl font-bold text-ink">تسجيل الدخول</h1>
-          <p className="text-sm text-ink-muted">أدخلي رقم هاتفك لعرض حسابك ومواعيدك.</p>
+    <Page width="narrow" className="pb-12">
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
+
+      <div className="pt-8 text-center md:pt-4">
+        <Logo />
+        <div className="mx-auto my-6 grid h-[82px] w-[82px] place-items-center rounded-[28px] bg-primary-soft text-[40px]" aria-hidden="true">
+          🌸
         </div>
+        <h1 className="text-[25px] font-bold leading-tight text-ink">
+          {t("login.welcomeLine1")}
+          <br />
+          {t("login.welcomeLine2")}
+        </h1>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">{t("login.subtitle")}</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-          <Input label="رقم الهاتف" placeholder="01xxxxxxxxx" dir="ltr" error={errors.phone?.message} {...register("phone")} />
+      <Card className="mt-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3" noValidate>
+          <Input
+            label={t("login.identifier")}
+            placeholder={t("login.identifierPlaceholder")}
+            dir="ltr"
+            autoComplete="username"
+            error={errors.identifier && t("validation.required")}
+            {...register("identifier")}
+          />
+          <Input
+            label={t("login.password")}
+            type="password"
+            placeholder="••••••••"
+            dir="ltr"
+            autoComplete="current-password"
+            error={errors.password && t("validation.required")}
+            {...register("password")}
+          />
 
-          {notFound && (
-            <p className="text-sm text-ink-muted">
-              لا يوجد حساب بهذا الرقم.{" "}
-              <Link href="/signup" className="font-medium text-primary">أنشئي حساباً جديداً</Link>
+          {error && (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
             </p>
           )}
-          {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? "جاري البحث..." : "دخول"}
+          <Button type="submit" block className="mt-2" disabled={isSubmitting}>
+            {isSubmitting ? t("login.submitting") : t("login.submit")}
           </Button>
+          <LinkButton href={withNext("/signup", next)} variant="secondary" block>
+            {t("login.createAccount")}
+          </LinkButton>
+          <Link href="/forgot-password" className="text-center text-sm font-semibold text-primary-dark hover:underline">
+            {t("login.forgotPassword")}
+          </Link>
         </form>
+      </Card>
+      <p className="mt-5 text-center text-sm text-ink-muted">
+        {t("doctorSignup.doctorPrompt")}{" "}
+        <Link href="/signup/doctor" className="font-semibold text-primary-dark hover:underline">
+          {t("doctorSignup.doctorLink")}
+        </Link>
+      </p>
+    </Page>
+  );
+}
 
-        <p className="mt-6 text-center text-sm text-ink-muted">
-          ليس لديك حساب؟ <Link href="/signup" className="font-medium text-primary">أنشئي حساباً</Link>
-        </p>
-      </div>
-    </div>
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<Page width="narrow"><Skeleton className="h-96" /></Page>}>
+      <LoginContent />
+    </Suspense>
   );
 }

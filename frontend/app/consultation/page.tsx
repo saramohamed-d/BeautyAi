@@ -1,38 +1,85 @@
-import Link from "next/link";
-import { Sparkles, Stethoscope } from "lucide-react";
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { MessageCircle } from "lucide-react";
+import { Page } from "@/components/layout/page";
+import { PageHeader } from "@/components/layout/page-header";
+import { ChatView } from "@/components/chat/chat-view";
+import { QuickGuide } from "@/components/consultation/quick-guide";
+import { Card } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/button";
+import { Notice } from "@/components/ui/notice";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/provider";
+import { withNext } from "@/lib/safe-next";
+import { isConcernId } from "@/lib/concerns";
 
 /**
- * "Ask BeautyAI" entry point — UI PLACEHOLDER ONLY.
- *
- * Per the Sprint 3 brief: no AI agent, no OpenAI calls, no medical logic
- * here. This page exists so the product's navigation and information
- * architecture already has the right entry point for the AI-assisted
- * booking experience that arrives in a future sprint (Sprint 5+:
- * LangGraph, Intake Agent, Safety Agent). Building the entry point now
- * means Sprint 5+ only needs to replace this page's content, not
- * restructure navigation across the app.
+ * AI consultation. Logged-in patients chat with the AI assistant, which
+ * runs the consultation (Sprints 7-9). Visitors pick a topic and are
+ * invited to log in; `?topic=` then prefills the first message.
  */
+function ConsultationContent() {
+  const { t, label } = useI18n();
+  const { status, user, patient } = useAuth();
+  const searchParams = useSearchParams();
+  const topic = searchParams.get("topic");
+  const book = searchParams.get("book");
+  // ?book=<specialty> (from a summary or old /assistant links) asks the booking agent; ?topic= starts a consultation.
+  const initialText =
+    book !== null
+      ? t("chat.findSlotPrompt", { specialty: book ? label("specialties", book) : t("chat.anySpecialist") })
+      : isConcernId(topic)
+        ? t("chat.concernPrompt", { concern: t(`concerns.${topic}`) })
+        : "";
+
+  return (
+    <Page width="narrow">
+      <PageHeader title={t("chat.title")} backHref="/" />
+
+      {status === "loading" ? (
+        <Skeleton className="h-80" />
+      ) : patient ? (
+        <ChatView initialText={initialText} />
+      ) : (
+        <>
+          {user ? (
+            <Notice className="mb-4">{t("chat.staffNote")}</Notice>
+          ) : (
+            <Card className="mb-5 text-center">
+              <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full bg-lavender-soft text-ink">
+                <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <p className="font-bold text-ink">{t("chat.loginTitle")}</p>
+              <p className="mt-1 text-sm text-ink-muted">{t("chat.loginBody")}</p>
+              <LinkButton href={withNext("/login", "/consultation")} block className="mt-4">
+                {t("login.submit")}
+              </LinkButton>
+            </Card>
+          )}
+          {!user && (
+            <>
+              <h2 className="text-lg font-bold text-ink">{t("chat.quickGuideTitle")}</h2>
+          <p className="mb-3 mt-1 text-sm text-ink-muted">{t("consult.subtitle")}</p>
+              <QuickGuide />
+            </>
+          )}
+          <Notice className="mt-[15px]">
+            <p className="font-bold">{t("consult.disclaimerTitle")}</p>
+            <p>{t("consult.disclaimerBody")}</p>
+          </Notice>
+        </>
+      )}
+    </Page>
+  );
+}
+
 export default function ConsultationPage() {
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center gap-4 px-4 py-16 text-center md:px-6">
-      <Sparkles className="h-10 w-10 text-primary" strokeWidth={1.5} />
-      <h1 className="text-2xl font-bold text-ink md:text-3xl">اسألي BeautyAI</h1>
-      <p className="text-ink-muted">
-        مساعدة الذكاء الاصطناعي لاختيار الطبيب والإجراء المناسب لك قريباً. في الوقت الحالي، يمكنك تصفّح
-        الأطباء والإجراءات مباشرة والحجز بسهولة.
-      </p>
-      <div className="mt-2 flex flex-wrap justify-center gap-3">
-        <Link href="/doctors">
-          <Button>
-            <Stethoscope className="h-4 w-4" />
-            تصفّحي الأطباء
-          </Button>
-        </Link>
-        <Link href="/procedures">
-          <Button variant="outline">استكشفي الإجراءات</Button>
-        </Link>
-      </div>
-    </div>
+    <Suspense fallback={<Page width="narrow"><Skeleton className="h-80" /></Page>}>
+      <ConsultationContent />
+    </Suspense>
   );
 }

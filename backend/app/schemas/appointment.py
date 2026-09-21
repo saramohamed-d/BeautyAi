@@ -24,26 +24,46 @@ class AppointmentBase(BaseModel):
 
 
 class AppointmentCreate(AppointmentBase):
+    """
+    When `availability_id` is given (the normal case), the appointment's
+    times always come from that slot; `scheduled_start`/`scheduled_end`
+    in the request are ignored. They're only used for appointments
+    staff create without a slot.
+    """
+
     idempotency_key: str | None = Field(None, max_length=128)
 
 
 class AppointmentUpdate(BaseModel):
+    """
+    Status and notes only. Times change through POST /appointments/{id}/reschedule,
+    which moves the slot booking with them.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
     status: AppointmentStatus | None = None
     notes: str | None = None
-    scheduled_start: datetime | None = None
-    scheduled_end: datetime | None = None
+    cancellation_reason: str | None = Field(None, max_length=500)
 
     @model_validator(mode="after")
-    def check_times(self) -> "AppointmentUpdate":
-        if self.scheduled_start and self.scheduled_end and self.scheduled_end <= self.scheduled_start:
-            raise ValueError("scheduled_end must be after scheduled_start")
+    def reason_only_when_cancelling(self) -> "AppointmentUpdate":
+        if self.cancellation_reason is not None and self.status != AppointmentStatus.CANCELLED:
+            raise ValueError("cancellation_reason can only be given when cancelling")
         return self
+
+
+class RescheduleRequest(BaseModel):
+    availability_id: UUID
 
 
 class AppointmentRead(AppointmentBase):
     id: UUID
     status: AppointmentStatus
     idempotency_key: str | None = None
+    cancellable_until: datetime | None = None
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
     created_at: datetime
     updated_at: datetime
 

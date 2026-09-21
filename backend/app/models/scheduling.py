@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, String, Text, text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -22,6 +22,13 @@ class Availability(Base, UUIDPkMixin, TimestampMixin):
     (one row to mark `is_booked=True`). The trade-off — a background job
     must generate future slots from doctors' recurring schedules — is a
     Sprint 13 concern; Sprint 1 only models the resulting row shape.
+
+    Holds (Sprint 6): while a patient is on the payment step the slot is
+    held for them (`held_by_patient_id` until `held_until`), so nobody
+    else can book it mid-payment. A hold simply stops counting once
+    `held_until` passes; no cleanup job is needed. A slot is *bookable*
+    when it's in the future, not booked, and not held by someone else
+    (see availability_service.bookable_conditions).
     """
 
     __tablename__ = "availability"
@@ -35,12 +42,14 @@ class Availability(Base, UUIDPkMixin, TimestampMixin):
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_booked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    held_by_patient_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("patients.id", ondelete="SET NULL"), nullable=True
+    )
+    held_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     doctor: Mapped["Doctor"] = relationship(back_populates="availability_slots")
     clinic: Mapped["Clinic"] = relationship(back_populates="availability_slots")
-    appointment: Mapped["Appointment | None"] = relationship(
-        back_populates="availability", uselist=False
-    )
+    appointments: Mapped[list["Appointment"]] = relationship(back_populates="availability")
 
     __table_args__ = (
         Index("ix_availability_doctor_id_start_time", "doctor_id", "start_time"),
@@ -53,9 +62,11 @@ class Appointment(Base, UUIDPkMixin, TimestampMixin):
     """
     A confirmed (or pending/cancelled) booking.
 
-    `availability_id` is UNIQUE — a slot can back at most one appointment,
-    which is the database-level guarantee against double-booking (see
-    architecture notes). `scheduled_start`/`scheduled_end` are
+    At most one *active* appointment per slot: a partial UNIQUE index on
+    `availability_id` that ignores cancelled appointments. This is the
+    database-level guarantee against double-booking, while still letting a
+    cancelled slot be booked again and keeping the cancelled appointment
+    linked to its slot for history. `scheduled_start`/`scheduled_end` are
     denormalized copies of the slot's times at booking time: appointment
     history must stay accurate even if the `availability` row is later
     deleted or its parent doctor's schedule changes.
@@ -85,7 +96,6 @@ class Appointment(Base, UUIDPkMixin, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("availability.id", ondelete="SET NULL"),
         nullable=True,
-        unique=True,
     )
     status: Mapped[AppointmentStatus] = mapped_column(
         SAEnum(
@@ -101,15 +111,30 @@ class Appointment(Base, UUIDPkMixin, TimestampMixin):
     scheduled_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     idempotency_key: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Latest moment the patient may cancel or reschedule. Computed from the
+    # clinic's cancellation_cutoff_hours when booked (or rescheduled), so a
+    # later policy change doesn't alter the terms of existing bookings.
+    cancellable_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancelled_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="appointments")
     doctor: Mapped["Doctor"] = relationship(back_populates="appointments")
     clinic: Mapped["Clinic"] = relationship(back_populates="appointments")
-    availability: Mapped["Availability | None"] = relationship(back_populates="appointment")
+    availability: Mapped["Availability | None"] = relationship(back_populates="appointments")
 
     __table_args__ = (
         Index("ix_appointments_patient_id", "patient_id"),
         Index("ix_appointments_doctor_id_scheduled_start", "doctor_id", "scheduled_start"),
+        Index(
+            "uq_appointments_active_availability",
+            "availability_id",
+            unique=True,
+            postgresql_where=text("status <> 'cancelled'"),
+        ),
         CheckConstraint(
             "scheduled_end > scheduled_start", name="ck_appointments_end_after_start"
         ),

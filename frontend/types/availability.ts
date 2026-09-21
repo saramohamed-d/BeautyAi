@@ -8,3 +8,8 @@ export interface Availability {
   created_at: string;
   updated_at: string;
 }
+
+export interface SlotHold {
+  availability_id: string;
+  held_until: string;
+}

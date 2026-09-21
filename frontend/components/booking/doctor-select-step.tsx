@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { Search, ShieldCheck, Stethoscope } from "lucide-react";
-import { useDoctors } from "@/hooks/use-doctors";
-import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
+import { SelectableCard } from "@/components/ui/selectable-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useDoctors } from "@/hooks/use-doctors";
+import { useI18n } from "@/lib/i18n/provider";
 import type { Doctor } from "@/types/doctor";
-import { cn } from "@/lib/utils";
 
 export function DoctorSelectStep({
   selectedDoctor,
@@ -16,61 +17,42 @@ export function DoctorSelectStep({
   selectedDoctor: Doctor | null;
   onSelect: (doctor: Doctor) => void;
 }) {
+  const { t, label } = useI18n();
   const [specialty, setSpecialty] = useState("");
-  const { data, isLoading } = useDoctors({ page_size: 50, is_active: true, specialty: specialty || undefined });
+  const { data, isLoading } = useDoctors({ page_size: 50, is_active: true, specialty: specialty.trim() || undefined });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-        <Input
-          placeholder="ابحثي بالتخصص، مثال: Dermatology"
+    <div className="flex flex-col gap-2.5">
+      <div className="flex h-12 items-center gap-2 rounded-tile border border-border bg-surface px-[14px]">
+        <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+        <input
+          type="search"
           value={specialty}
           onChange={(e) => setSpecialty(e.target.value)}
-          className="pr-10"
+          placeholder={t("booking.searchSpecialty")}
+          aria-label={t("booking.searchSpecialty")}
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-muted/80"
         />
       </div>
 
-      {isLoading && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
-        </div>
-      )}
+      {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[76px]" />)}
 
       {!isLoading && data?.items.length === 0 && (
-        <EmptyState icon={Stethoscope} title="لا يوجد أطباء مطابقون" description="جرّبي تخصصاً آخر." />
+        <EmptyState icon={Stethoscope} title={t("booking.noDoctorsTitle")} description={t("booking.noDoctorsBody")} />
       )}
 
-      {!isLoading && data && data.items.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {data.items.map((doctor) => {
-            const isSelected = selectedDoctor?.id === doctor.id;
-            return (
-              <button
-                key={doctor.id}
-                type="button"
-                onClick={() => onSelect(doctor)}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl border p-4 text-right transition-colors",
-                  isSelected ? "border-primary bg-primary-soft" : "border-border bg-surface hover:border-primary"
-                )}
-                aria-pressed={isSelected}
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary-dark">
-                  <Stethoscope className="h-5 w-5" strokeWidth={1.75} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-ink">{doctor.full_name}</p>
-                  <p className="truncate text-sm text-ink-muted">{doctor.specialty}</p>
-                </div>
-                {doctor.verification_status === "verified" && (
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-sage" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {data?.items.map((doctor) => (
+        <SelectableCard key={doctor.id} selected={selectedDoctor?.id === doctor.id} onClick={() => onSelect(doctor)}>
+          <Avatar name={doctor.full_name} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-ink">{doctor.full_name}</p>
+            <p className="truncate text-xs text-ink-muted">{label("specialties", doctor.specialty)}</p>
+          </div>
+          {doctor.verification_status === "verified" && (
+            <ShieldCheck className="h-4 w-4 shrink-0 text-sage" aria-label={t("common.verified")} />
+          )}
+        </SelectableCard>
+      ))}
     </div>
   );
 }

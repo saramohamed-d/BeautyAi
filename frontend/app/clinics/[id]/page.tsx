@@ -1,65 +1,72 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import { MapPin, Phone, Mail, Calendar } from "lucide-react";
-import { useClinic } from "@/hooks/use-clinic";
-import { Button } from "@/components/ui/button";
+import { Building2, Mail, MapPin, Phone } from "lucide-react";
+import { Page } from "@/components/layout/page";
+import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { useClinic } from "@/hooks/use-clinic";
+import { useI18n } from "@/lib/i18n/provider";
 
 export default function ClinicDetailPage() {
+  const { t } = useI18n();
   const params = useParams<{ id: string }>();
   const { data: clinic, isLoading, isError, refetch } = useClinic(params.id);
 
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
-        <Skeleton className="h-64" />
-      </div>
-    );
-  }
-
-  if (isError || !clinic) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
-        <ErrorState message="لم نتمكن من العثور على هذه العيادة." onRetry={() => refetch()} />
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
-      <div className="flex flex-col gap-6 rounded-3xl border border-border bg-surface p-8">
-        <div>
-          <h1 className="text-2xl font-bold text-ink md:text-3xl">{clinic.name}</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-ink-muted">
-            <MapPin className="h-4 w-4" />
-            {clinic.address ? `${clinic.address}, ` : ""}{clinic.city}، {clinic.country}
-          </p>
-        </div>
+    <Page width="narrow">
+      <PageHeader title={t("clinics.detailTitle")} />
 
-        {clinic.description && <p className="leading-relaxed text-ink-muted">{clinic.description}</p>}
+      {isLoading && <Skeleton className="h-72" />}
+      {(isError || (!isLoading && !clinic)) && <ErrorState message={t("errors.clinicNotFound")} onRetry={() => refetch()} />}
 
-        <div className="flex flex-wrap gap-6 text-sm text-ink-muted">
-          {clinic.phone && (
-            <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> {clinic.phone}</span>
+      {clinic && (
+        <>
+          <div className="text-center">
+            <div className="mx-auto my-6 grid h-[82px] w-[82px] place-items-center rounded-[28px] bg-sage-soft text-sage">
+              <Building2 className="h-9 w-9" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-xl font-bold text-ink">{clinic.name}</h2>
+            <p className="mt-1 flex items-center justify-center gap-1 text-xs text-ink-muted">
+              <MapPin className="h-3.5 w-3.5" />
+              {clinic.address ? `${clinic.address} · ` : ""}
+              {clinic.city}
+            </p>
+          </div>
+
+          {clinic.description && (
+            <Card className="mt-5">
+              <p className="text-sm leading-relaxed text-ink-muted">{clinic.description}</p>
+            </Card>
           )}
-          {clinic.email && (
-            <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> {clinic.email}</span>
-          )}
-        </div>
 
-        <div className="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-muted">اختاري طبيبك لحجز موعد في إحدى عياداتنا</p>
-          <Link href="/doctors">
-            <Button size="lg">
-              <Calendar className="h-4 w-4" />
-              تصفّحي الأطباء
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
+          {(clinic.phone || clinic.email) && (
+            <Card className="mt-2.5">
+              <p className="text-sm font-bold text-ink">{t("clinics.contact")}</p>
+              <div className="mt-1 flex flex-col gap-1 text-sm text-ink-muted">
+                {clinic.phone && (
+                  <a href={`tel:${clinic.phone}`} className="flex items-center gap-1.5 hover:text-ink">
+                    <Phone className="h-4 w-4 text-primary-dark" /> <span dir="ltr">{clinic.phone}</span>
+                  </a>
+                )}
+                {clinic.email && (
+                  <a href={`mailto:${clinic.email}`} className="flex items-center gap-1.5 hover:text-ink">
+                    <Mail className="h-4 w-4 text-primary-dark" /> {clinic.email}
+                  </a>
+                )}
+              </div>
+            </Card>
+          )}
+
+          <p className="mt-5 text-center text-sm text-ink-muted">{t("clinics.bookHint")}</p>
+          <LinkButton href="/doctors" block className="mt-3">
+            {t("clinics.browseDoctors")}
+          </LinkButton>
+        </>
+      )}
+    </Page>
   );
 }

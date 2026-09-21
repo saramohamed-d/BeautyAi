@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 /*
-  One typeface (Cairo) carries both Arabic and Latin text — weight does
-  the work of hierarchy (600/700 for headings, 400 for body) rather than
-  mixing in a second display face. This is deliberate for a bilingual,
-  Arabic-first, RTL-native product: pairing fonts across scripts is a
-  common source of visual mismatch, and Cairo's Latin glyphs are strong
-  enough to not need a second family for English fallback content.
+  Two typefaces, chosen per language: DM Sans (the demo's face) for
+  English, Cairo for Arabic — DM Sans has no Arabic glyphs. The root
+  layout exposes both as CSS variables and `lang` on <html> picks one.
 */
+:root {
+  --font-body: var(--font-dm-sans), var(--font-cairo);
+}
+
+html[lang="ar"] {
+  --font-body: var(--font-cairo), var(--font-dm-sans);
+}
 
 body {
   min-height: 100dvh;
-  background-color: #fbf7f4;
+  background: linear-gradient(135deg, #f8eef0, #fbf8f5);
 }
 
 @keyframes fadeIn {
@@ -27,8 +31,6 @@ body {
   }
 }
 
-/* Respect reduced-motion preferences for the one deliberate motion
-   moment we use (hero entrance) — see app/page.tsx. */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -37,9 +39,16 @@ body {
   }
 }
 
-/* Visible keyboard focus ring everywhere, in the brand color rather than
-   the browser default blue, without removing focus outlines. */
+/* Visible keyboard focus ring everywhere, in the brand color. */
 :focus-visible {
-  outline: 2px solid #9c5b6e;
+  outline: 2px solid #b9546b;
   outline-offset: 2px;
+}
+
+/* Horizontal chip rows scroll without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -1,22 +1,23 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n/provider";
 
 /**
- * Shown whenever a query fails — including when the backend is entirely
- * unreachable. The app should never crash on this; every list/detail
- * page wires its query's `isError` state to this component.
+ * Shown whenever a query fails — including when the backend is
+ * unreachable. Every list/detail page wires `isError` to this.
  */
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+  const { t } = useI18n();
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-6 py-16 text-center">
-      <AlertTriangle className="h-8 w-8 text-primary" strokeWidth={1.5} />
-      <p className="text-lg font-semibold text-ink">تعذر تحميل البيانات</p>
-      <p className="max-w-sm text-sm text-ink-muted">
-        {message ?? "حدث خطأ أثناء الاتصال بالخادم. تأكدي من اتصالك بالإنترنت وحاولي مرة أخرى."}
-      </p>
+    <div className="flex flex-col items-center gap-2 rounded-card border border-border bg-surface px-6 py-12 text-center">
+      <AlertTriangle className="h-7 w-7 text-primary" strokeWidth={1.75} />
+      <p className="font-bold text-ink">{t("errors.loadTitle")}</p>
+      <p className="max-w-xs text-sm text-ink-muted">{message ?? t("errors.loadBody")}</p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          إعادة المحاولة
+        <Button variant="secondary" size="sm" className="mt-2" onClick={onRetry}>
+          {t("common.retry")}
         </Button>
       )}
     </div>

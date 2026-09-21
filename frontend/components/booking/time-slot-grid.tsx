@@ -1,7 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
-import { formatTime } from "@/lib/format";
 import type { Availability } from "@/types/availability";
 
 export function TimeSlotGrid({
@@ -13,12 +13,14 @@ export function TimeSlotGrid({
   selectedSlot: Availability | null;
   onSelect: (slot: Availability) => void;
 }) {
+  const { t, formatTime } = useI18n();
+
   if (slots.length === 0) {
-    return <p className="text-sm text-ink-muted">لا توجد مواعيد متاحة في هذا اليوم. جرّبي يوماً آخر.</p>;
+    return <p className="text-sm text-ink-muted">{t("booking.noTimes")}</p>;
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-[9px] sm:grid-cols-3">
       {slots.map((slot) => {
         const isSelected = selectedSlot?.id === slot.id;
         return (
@@ -26,11 +28,11 @@ export function TimeSlotGrid({
             key={slot.id}
             type="button"
             onClick={() => onSelect(slot)}
-            className={cn(
-              "rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
-              isSelected ? "border-primary bg-primary text-white" : "border-border bg-surface text-ink hover:border-primary"
-            )}
             aria-pressed={isSelected}
+            className={cn(
+              "rounded-field border p-3 text-sm font-medium transition-colors",
+              isSelected ? "border-primary bg-primary text-white" : "border-border bg-surface text-ink hover:border-primary-line"
+            )}
           >
             {formatTime(new Date(slot.start_time))}
           </button>

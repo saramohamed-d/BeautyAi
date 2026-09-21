@@ -14,6 +14,10 @@ class ClinicBase(BaseModel):
     longitude: float | None = Field(None, ge=-180, le=180)
     phone: str | None = Field(None, max_length=32)
     email: EmailStr | None = None
+    # Patients may cancel/reschedule until this many hours before the appointment.
+    cancellation_cutoff_hours: int = Field(24, ge=0, le=720)
+    # Default length of one slot when generating from the opening hours (Sprint 13).
+    slot_duration_minutes: int = Field(30, ge=5, le=240)
 
 
 class ClinicCreate(ClinicBase):
@@ -30,6 +34,8 @@ class ClinicUpdate(BaseModel):
     longitude: float | None = Field(None, ge=-180, le=180)
     phone: str | None = Field(None, max_length=32)
     email: EmailStr | None = None
+    cancellation_cutoff_hours: int | None = Field(None, ge=0, le=720)
+    slot_duration_minutes: int | None = Field(None, ge=5, le=240)
     is_active: bool | None = None
 
 

@@ -2,76 +2,89 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { UserRound } from "lucide-react";
+import { Search, UserRound } from "lucide-react";
+import { Page } from "@/components/layout/page";
+import { PageHeader } from "@/components/layout/page-header";
 import { DoctorCard } from "@/components/doctors/doctor-card";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { Chip } from "@/components/ui/chip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { Select } from "@/components/ui/select";
-import { useDoctors } from "@/hooks/use-doctors";
+import { useDoctorSearch } from "@/hooks/use-doctor-search";
+import { useDebounced } from "@/hooks/use-debounced";
+import { useI18n } from "@/lib/i18n/provider";
 
 const SPECIALTIES = ["Dermatology", "Aesthetic Medicine"];
 
 function DoctorsPageContent() {
+  const { t, label } = useI18n();
   const searchParams = useSearchParams();
   const [specialty, setSpecialty] = useState(searchParams.get("specialty") ?? "");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
-  const { data, isLoading, isError, refetch } = useDoctors({
-    page_size: 24,
-    is_active: true,
+  const q = useDebounced(query.trim());
+
+  // Verified doctors only, soonest availability first (GET /doctors/search).
+  const { data, isLoading, isError, refetch } = useDoctorSearch({
+    page_size: 50,
+    q: q || undefined,
     specialty: specialty || undefined,
   });
+  const results = data?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 md:px-6">
-      <SectionHeading
-        eyebrow="اكتشفي"
-        title="الأطباء الموثّقون"
-        description="تصفّحي أطباء التجميل والجلدية المعتمدين على منصة BeautyAI واحجزي استشارتك."
-      />
+    <Page>
+      <PageHeader title={t("doctors.title")} backHref="/" />
 
-      <div className="mt-6 max-w-xs">
-        <Select label="التخصص" value={specialty} onChange={(e) => setSpecialty(e.target.value)}>
-          <option value="">كل التخصصات</option>
-          {SPECIALTIES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </Select>
+      <div className="my-[18px] flex h-12 items-center gap-2 rounded-tile border border-border bg-surface px-[14px] md:max-w-xl">
+        <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden="true" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("doctors.searchPlaceholder")}
+          aria-label={t("doctors.searchPlaceholder")}
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-muted/80"
+        />
+      </div>
+
+      <div className="no-scrollbar mb-3 flex gap-[7px] overflow-x-auto">
+        <Chip active={!specialty} onClick={() => setSpecialty("")}>
+          {t("doctors.all")}
+        </Chip>
+        {SPECIALTIES.map((s) => (
+          <Chip key={s} active={specialty === s} onClick={() => setSpecialty(s)}>
+            {label("specialties", s)}
+          </Chip>
+        ))}
       </div>
 
       {isLoading && (
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-48" />)}
+        <div className="grid gap-2.5 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[76px]" />)}
         </div>
       )}
 
-      {isError && <div className="mt-8"><ErrorState onRetry={() => refetch()} /></div>}
+      {isError && <ErrorState onRetry={() => refetch()} />}
 
-      {!isLoading && !isError && data && data.items.length === 0 && (
-        <div className="mt-8">
-          <EmptyState
-            icon={UserRound}
-            title="لا يوجد أطباء مطابقون"
-            description="جرّبي تغيير التخصص أو تصفّحي كل الأطباء المتاحين."
-          />
-        </div>
+      {!isLoading && !isError && results.length === 0 && (
+        <EmptyState icon={UserRound} title={t("doctors.emptyTitle")} description={t("doctors.emptyBody")} />
       )}
 
-      {!isLoading && !isError && data && data.items.length > 0 && (
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {data.items.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} />
+      {!isLoading && !isError && results.length > 0 && (
+        <div className="grid gap-2.5 md:grid-cols-2">
+          {results.map(({ doctor, next_slot, price_from }) => (
+            <DoctorCard key={doctor.id} doctor={doctor} nextSlot={next_slot} priceFrom={price_from} />
           ))}
         </div>
       )}
-    </div>
+    </Page>
   );
 }
 
 export default function DoctorsPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-6xl px-4 py-12 md:px-6"><Skeleton className="h-48" /></div>}>
+    <Suspense fallback={<Page><Skeleton className="h-48" /></Page>}>
       <DoctorsPageContent />
     </Suspense>
   );

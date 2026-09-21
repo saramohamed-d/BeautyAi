@@ -1,0 +1,14 @@
+{"message": "Book me an appointment tomorrow evening in Cairo", "language": "en", "expected": {"wants_booking": true, "city": "Cairo", "time_of_day": "evening", "date_offset": 1}}
+{"message": "I'd like to see a dermatologist tomorrow at 5 pm", "language": "en", "expected": {"wants_booking": true, "specialty": "Dermatology", "preferred_time": "17:00", "date_offset": 1}}
+{"message": "Can you find me a morning appointment in Giza?", "language": "en", "expected": {"wants_booking": true, "city": "Giza", "time_of_day": "morning"}}
+{"message": "Book me with Dr Amira please", "language": "en", "expected": {"wants_booking": true, "doctor_name": "Amira"}}
+{"message": "I want an appointment today", "language": "en", "expected": {"wants_booking": true, "date_offset": 0}}
+{"message": "What causes melasma?", "language": "en", "expected": {"wants_booking": false}}
+{"message": "How much does a consultation cost?", "language": "en", "expected": {"wants_booking": false}}
+{"message": "احجزيلي موعد بكره بالليل في القاهره", "language": "ar", "expected": {"wants_booking": true, "city": "Cairo", "time_of_day": "evening", "date_offset": 1}}
+{"message": "عايزه ميعاد مع دكتور جلديه بكره الساعه ٥ العصر", "language": "ar", "expected": {"wants_booking": true, "specialty": "Dermatology", "preferred_time": "17:00", "date_offset": 1}}
+{"message": "ممكن ميعاد الصبح في الجيزه؟", "language": "ar", "expected": {"wants_booking": true, "city": "Giza", "time_of_day": "morning"}}
+{"message": "احجزيلي مع د. اميره لو سمحتي", "language": "ar", "expected": {"wants_booking": true, "doctor_name": "اميره"}}
+{"message": "عايزه ميعاد النهارده", "language": "ar", "expected": {"wants_booking": true, "date_offset": 0}}
+{"message": "ايه اسباب الكلف؟", "language": "ar", "expected": {"wants_booking": false}}
+{"message": "الاستشاره بكام؟", "language": "ar", "expected": {"wants_booking": false}}

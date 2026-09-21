@@ -1,0 +1,12 @@
+{"message": "I've had acne on my chin for about 3 months and it itches", "language": "en", "expected": {"concern": "acne", "body_area": ["chin", "face"], "duration": "3 months", "has_symptoms": true}}
+{"message": "My hair has been falling out for two months", "language": "en", "expected": {"concern": "hair_loss", "body_area": ["scalp"], "duration": "two months"}}
+{"message": "I have dark patches on my cheeks since last summer", "language": "en", "expected": {"concern": "pigmentation", "body_area": ["cheeks", "face"]}}
+{"message": "Fine lines around my eyes are bothering me", "language": "en", "expected": {"concern": "anti_aging", "body_area": ["eyes", "around the eyes"]}}
+{"message": "My face gets red and flushed, it's been like this for a year", "language": "en", "expected": {"concern": "redness", "body_area": ["face"], "duration": "a year"}}
+{"message": "I have acne on my back, no pain or itching", "language": "en", "expected": {"concern": "acne", "body_area": ["back"], "has_symptoms": false}}
+{"message": "عندي حبوب في الذقن بقالها ٣ شهور وبتهرش", "language": "ar", "expected": {"concern": "acne", "body_area": ["الذقن", "الوش"], "has_symptoms": true}}
+{"message": "شعري بيقع من فروة راسي بقاله شهرين", "language": "ar", "expected": {"concern": "hair_loss", "body_area": ["فروة الراس"], "duration": "شهرين"}}
+{"message": "عندي كلف في الخدود من الصيف اللي فات", "language": "ar", "expected": {"concern": "pigmentation", "body_area": ["الخدود", "الوش"]}}
+{"message": "عندي تجاعيد حوالين العين", "language": "ar", "expected": {"concern": "anti_aging", "body_area": ["العين", "حوالين العين"]}}
+{"message": "وشي بيحمر كتير وبقاله سنه كده", "language": "ar", "expected": {"concern": "redness", "body_area": ["الوجه", "الوش"], "duration": "سنه"}}
+{"message": "عندي حبوب في الضهر ومفيش الم ولا هرش", "language": "ar", "expected": {"concern": "acne", "body_area": ["الظهر", "الضهر"], "has_symptoms": false}}

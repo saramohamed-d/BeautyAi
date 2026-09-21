@@ -14,10 +14,44 @@ hand-building error responses.
 class AppError(Exception):
     status_code: int = 400
     code: str = "bad_request"
+    headers: dict[str, str] | None = None
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, code: str | None = None) -> None:
         self.message = message
+        # A more specific machine-readable code (e.g. "slot_unavailable")
+        # the frontend can translate; defaults to the class's generic code.
+        if code is not None:
+            self.code = code
         super().__init__(message)
+
+
+class UnauthorizedError(AppError):
+    """Missing, invalid or expired credentials (401)."""
+
+    status_code = 401
+    code = "unauthorized"
+    headers = {"WWW-Authenticate": "Bearer"}
+
+
+class ForbiddenError(AppError):
+    """Authenticated, but this role may not perform the action (403)."""
+
+    status_code = 403
+    code = "forbidden"
+
+
+class TooManyRequestsError(AppError):
+    status_code = 429
+    code = "rate_limited"
+    # Tells a well-behaved client when to come back (Sprint 17).
+    headers = {"Retry-After": "300"}
+
+
+class PaymentProviderError(AppError):
+    """The payment gateway couldn't be reached or refused the request."""
+
+    status_code = 502
+    code = "payment_provider_error"
 
 
 class NotFoundError(AppError):

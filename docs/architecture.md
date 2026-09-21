@@ -66,35 +66,50 @@ duplicated across two docs). Summary of what changed vs. Sprint 0:
 
 
 
-- **i18n / locale routing strategy** (e.g. `/ar`, `/en` route prefixes vs.
-  a single Arabic-first UI with an English toggle) — deferred to Sprint 3/4.
-  Sprint 0's layout hardcodes `dir="rtl"` / `lang="ar"` as a placeholder.
+- **i18n / locale routing strategy** — resolved in Sprint 4: English by
+  default with a full Arabic (RTL) alternative, chosen by a cookie rather
+  than `/en` `/ar` route prefixes. See [`docs/design.md`](design.md).
 - **Auth strategy details** (JWT vs. session cookies, refresh token
   rotation) — deferred to Sprint 2. Config placeholders exist now so the
   eventual shape doesn't require a breaking config change later.
 
 ## Sprint roadmap
 
-| Sprint | Focus |
-|---|---|
-| 0 | Project foundation (this sprint) |
-| 1 | Database foundation (models, migrations, seed data) |
-| 2 | Backend API foundation (routes, services, auth foundation) |
-| 3 | Frontend foundation (layout, nav, API client, auth UI) |
-| 4 | Patient chat UI |
-| 5 | LangGraph foundation (PatientState, graph, routing) |
-| 6 | Intake agent |
-| 7 | Safety agent |
-| 8 | RAG ingestion |
-| 9 | RAG retrieval |
-| 10 | Analysis agent |
-| 11 | Doctor/clinic matching |
-| 12 | Doctor/clinic frontend |
-| 13 | Availability |
-| 14 | Booking |
-| 15 | Clinic dashboard |
-| 16 | Admin dashboard |
-| 17 | WhatsApp integration |
-| 18 | Follow-up / reminders |
-| 19 | Evaluation |
-| 20 | Production hardening |
+Reordered after Sprint 3 to follow the patient journey in
+`BeautyAI_Product_System_Functionality_Spec.md` and the approved
+interactive demo. Principles behind the order:
+
+- Design system and English/Arabic come first, so every later screen is
+  built once, already styled and translatable.
+- Real accounts and permissions come before any AI, because
+  conversations and bookings must belong to a user and every AI tool
+  must check permissions.
+- Deterministic booking rules come before the Booking Agent. The agent
+  calls the same tested backend functions a person uses; it never owns
+  booking logic.
+- Safety ships in the first AI sprint, not at the end.
+
+| Sprint | Focus | Status |
+|---|---|---|
+| 0 | Infrastructure (Docker, FastAPI, Next.js skeletons, health checks) | Done |
+| 1 | Database schema, migrations, seed data | Done |
+| 2 | Backend CRUD APIs | Done |
+| 3 | Frontend foundation (pages, API client, booking wizard) | Done |
+| **Phase 1: solid base** | | |
+| 4 | Design system from the demo + English/Arabic (RTL) switch | Done |
+| 5 | Real accounts: `users` table, email/phone + password, roles (patient, doctor, clinic admin, platform admin), backend RBAC on every endpoint; plan bilingual content fields | Done |
+| 6 | Booking rules: fix slot re-booking after cancel and concurrent-booking 500s, temporary slot hold during payment, cancel/reschedule policy, doctor search API | Done |
+| **Phase 2: AI** | | |
+| 7 | AI chat + safety: chat UI, conversation API, LLM orchestration, red-flag detection and "not a diagnosis" guardrails from day one | Done |
+| 8 | Medical knowledge (RAG): approved content, pgvector retrieval, citations, EN + AR | Done |
+| 9 | AI consultation: follow-up questions → preliminary assessment → suggested specialty (replaces the fixed lookup in `frontend/lib/concerns.ts`) | Done |
+| 10 | Matching + Booking Agent: agent calls the Sprint 6 tools, always asks for explicit confirmation (replaces the deterministic search in `frontend/app/assistant`) | Done |
+| **Phase 3: money and providers** | | |
+| 11 | Payments: card / mobile wallet via Paymob, pay at clinic, webhook-confirmed bookings, automatic refunds (InstaPay not offered, see `docs/payments.md`) | Done |
+| 12 | Doctor sign-up + verification: documents, admin approve/reject, doctor dashboard (the admin *screen* lands in Sprint 14) | Done |
+| 13 | Clinic admin dashboard: doctors, services, prices, hours, slots, appointments | Done |
+| 14 | Platform admin dashboard: users, verification, payments, reports, audit logs | Done |
+| **Phase 4: launch** | | |
+| 15 | Notifications + follow-up: reminders and aftercare (email / SMS / WhatsApp) | Done |
+| 16 | AI evaluation: EN + AR test conversations, safety and accuracy metrics | Done |
+| 17 | Security, privacy (Egypt PDPL review), production deployment | Done |

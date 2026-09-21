@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import AdminPrincipal
 from app.db.session import get_db
 from app.schemas.common import PaginatedResponse
 from app.schemas.procedure import ProcedureCreate, ProcedureRead, ProcedureUpdate
@@ -23,7 +24,7 @@ async def list_procedures(
 
 
 @router.post("", response_model=ProcedureRead, status_code=status.HTTP_201_CREATED)
-async def create_procedure(payload: ProcedureCreate, db: AsyncSession = Depends(get_db)) -> ProcedureRead:
+async def create_procedure(payload: ProcedureCreate, _: AdminPrincipal, db: AsyncSession = Depends(get_db)) -> ProcedureRead:
     return await procedure_service.create_procedure(db, payload)
 
 
@@ -34,6 +35,6 @@ async def get_procedure(procedure_id: UUID, db: AsyncSession = Depends(get_db)) 
 
 @router.patch("/{procedure_id}", response_model=ProcedureRead)
 async def update_procedure(
-    procedure_id: UUID, payload: ProcedureUpdate, db: AsyncSession = Depends(get_db)
+    procedure_id: UUID, payload: ProcedureUpdate, _: AdminPrincipal, db: AsyncSession = Depends(get_db)
 ) -> ProcedureRead:
     return await procedure_service.update_procedure(db, procedure_id, payload)

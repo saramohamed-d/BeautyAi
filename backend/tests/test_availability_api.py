@@ -8,20 +8,20 @@ from tests.factories import make_availability, make_clinic, make_doctor
 
 
 @pytest.mark.asyncio
-async def test_create_availability_success(client: AsyncClient) -> None:
-    doctor = await make_doctor(client)
-    clinic = await make_clinic(client)
-    slot = await make_availability(client, doctor["id"], clinic["id"])
+async def test_create_availability_success(admin_client: AsyncClient) -> None:
+    doctor = await make_doctor(admin_client)
+    clinic = await make_clinic(admin_client)
+    slot = await make_availability(admin_client, doctor["id"], clinic["id"])
     assert slot["is_booked"] is False
     assert slot["doctor_id"] == doctor["id"]
 
 
 @pytest.mark.asyncio
-async def test_create_availability_end_before_start_returns_422(client: AsyncClient) -> None:
-    doctor = await make_doctor(client)
-    clinic = await make_clinic(client)
+async def test_create_availability_end_before_start_returns_422(admin_client: AsyncClient) -> None:
+    doctor = await make_doctor(admin_client)
+    clinic = await make_clinic(admin_client)
     start = datetime.now(timezone.utc) + timedelta(days=1)
-    resp = await client.post(
+    resp = await admin_client.post(
         "/api/v1/availability",
         json={
             "doctor_id": doctor["id"],
@@ -34,10 +34,10 @@ async def test_create_availability_end_before_start_returns_422(client: AsyncCli
 
 
 @pytest.mark.asyncio
-async def test_create_availability_nonexistent_doctor_returns_404(client: AsyncClient) -> None:
-    clinic = await make_clinic(client)
+async def test_create_availability_nonexistent_doctor_returns_404(admin_client: AsyncClient) -> None:
+    clinic = await make_clinic(admin_client)
     start = datetime.now(timezone.utc) + timedelta(days=1)
-    resp = await client.post(
+    resp = await admin_client.post(
         "/api/v1/availability",
         json={
             "doctor_id": str(uuid.uuid4()),
@@ -50,23 +50,23 @@ async def test_create_availability_nonexistent_doctor_returns_404(client: AsyncC
 
 
 @pytest.mark.asyncio
-async def test_update_availability_toggle_is_booked(client: AsyncClient) -> None:
-    doctor = await make_doctor(client)
-    clinic = await make_clinic(client)
-    slot = await make_availability(client, doctor["id"], clinic["id"])
+async def test_update_availability_toggle_is_booked(admin_client: AsyncClient) -> None:
+    doctor = await make_doctor(admin_client)
+    clinic = await make_clinic(admin_client)
+    slot = await make_availability(admin_client, doctor["id"], clinic["id"])
 
-    resp = await client.patch(f"/api/v1/availability/{slot['id']}", json={"is_booked": True})
+    resp = await admin_client.patch(f"/api/v1/availability/{slot['id']}", json={"is_booked": True})
     assert resp.status_code == 200
     assert resp.json()["is_booked"] is True
 
 
 @pytest.mark.asyncio
-async def test_list_availability_filter_by_doctor_and_booked(client: AsyncClient) -> None:
-    doctor = await make_doctor(client)
-    clinic = await make_clinic(client)
-    slot = await make_availability(client, doctor["id"], clinic["id"])
+async def test_list_availability_filter_by_doctor_and_booked(admin_client: AsyncClient) -> None:
+    doctor = await make_doctor(admin_client)
+    clinic = await make_clinic(admin_client)
+    slot = await make_availability(admin_client, doctor["id"], clinic["id"])
 
-    resp = await client.get(f"/api/v1/availability?doctor_id={doctor['id']}&is_booked=false")
+    resp = await admin_client.get(f"/api/v1/availability?doctor_id={doctor['id']}&is_booked=false")
     assert resp.status_code == 200
     body = resp.json()
     assert body["total"] >= 1

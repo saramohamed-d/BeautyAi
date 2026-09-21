@@ -40,3 +40,10 @@ class AvailabilityRead(AvailabilityBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class HoldRead(BaseModel):
+    """A slot reserved for the caller during payment. Who holds a slot is never exposed to others."""
+
+    availability_id: UUID
+    held_until: datetime

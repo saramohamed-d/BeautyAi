@@ -3,9 +3,10 @@ import type { HTMLAttributes } from "react";
 
 const tones = {
   primary: "bg-primary-soft text-primary-dark",
-  gold: "bg-gold-soft text-ink",
+  gold: "bg-gold-soft text-gold",
   sage: "bg-sage-soft text-sage",
-  neutral: "bg-bg text-ink-muted border border-border",
+  lavender: "bg-lavender-soft text-ink",
+  neutral: "border border-border bg-bg text-ink-muted",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -15,7 +16,7 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 export function Badge({ className, tone = "neutral", ...props }: BadgeProps) {
   return (
     <span
-      className={cn("inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium", tones[tone], className)}
+      className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold", tones[tone], className)}
       {...props}
     />
   );

@@ -19,6 +19,9 @@ import os
 # strategy (see app/db/session.py's NullPool note).
 
 os.environ["APP_ENV"] = "test"
+# The suite signs hundreds of patients up from one address; the limiter is
+# exercised deliberately in tests/test_account_security.py instead.
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 from collections.abc import AsyncGenerator
 
@@ -27,10 +30,22 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.models.enums import UserRole
+from tests.factories import bearer, create_user
 
 
 @pytest_asyncio.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
+    """Anonymous client — no Authorization header."""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
+@pytest_asyncio.fixture
+async def admin_client() -> AsyncGenerator[AsyncClient, None]:
+    """Client authenticated as a fresh platform admin. Used to set up data and test admin paths."""
+    admin = await create_user(UserRole.PLATFORM_ADMIN)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test", headers=bearer(admin)) as ac:
         yield ac

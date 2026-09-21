@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Doctor } from "@/types/doctor";
 import type { Clinic } from "@/types/clinic";
 import type { Procedure } from "@/types/procedure";
@@ -8,7 +8,7 @@ import type { Availability } from "@/types/availability";
 
 /**
  * BookingContext — carries the in-progress booking draft between
- * /booking and /payment.
+ * /booking, the AI chat's booking options and /payment.
  *
  * Design decision: plain React state in a provider mounted once in the
  * root layout, not localStorage/sessionStorage. Next.js App Router
@@ -28,9 +28,11 @@ export interface BookingDraft {
   procedure: Procedure | null;
   slot: Availability | null;
   notes: string;
+  /** When the server-side hold on `slot` expires (set when the patient continues to payment). */
+  heldUntil: string | null;
 }
 
-const emptyDraft: BookingDraft = { doctor: null, clinic: null, procedure: null, slot: null, notes: "" };
+const emptyDraft: BookingDraft = { doctor: null, clinic: null, procedure: null, slot: null, notes: "", heldUntil: null };
 
 interface BookingContextValue {
   draft: BookingDraft;
@@ -43,12 +45,12 @@ const BookingContext = createContext<BookingContextValue | undefined>(undefined)
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [draft, setDraftState] = useState<BookingDraft>(emptyDraft);
 
-  const setDraft = (updater: (prev: BookingDraft) => BookingDraft) => setDraftState(updater);
-  const resetDraft = () => setDraftState(emptyDraft);
+  // Stable identities, so consumers can list them as effect dependencies.
+  const setDraft = useCallback((updater: (prev: BookingDraft) => BookingDraft) => setDraftState(updater), []);
+  const resetDraft = useCallback(() => setDraftState(emptyDraft), []);
+  const value = useMemo(() => ({ draft, setDraft, resetDraft }), [draft, setDraft, resetDraft]);
 
-  return (
-    <BookingContext.Provider value={{ draft, setDraft, resetDraft }}>{children}</BookingContext.Provider>
-  );
+  return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;
 }
 
 export function useBookingContext(): BookingContextValue {

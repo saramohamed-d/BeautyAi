@@ -21,6 +21,7 @@ class PatientBase(BaseModel):
     email: EmailStr | None = None
     date_of_birth: date | None = None
     gender: str | None = Field(None, max_length=20)
+    city: str | None = Field(None, max_length=128)
     preferred_language: Language = Language.AR
 
     @field_validator("phone")
@@ -38,11 +39,20 @@ class PatientUpdate(BaseModel):
     email: EmailStr | None = None
     date_of_birth: date | None = None
     gender: str | None = Field(None, max_length=20)
+    city: str | None = Field(None, max_length=128)
     preferred_language: Language | None = None
+    # Which channels this patient wants (Sprint 15).
+    notify_email: bool | None = None
+    notify_sms: bool | None = None
+    notify_whatsapp: bool | None = None
 
 
 class PatientRead(PatientBase):
     id: UUID
+    # Channel preferences, so the account screen can show the toggles.
+    notify_email: bool = True
+    notify_sms: bool = True
+    notify_whatsapp: bool = False
     created_at: datetime
     updated_at: datetime
 

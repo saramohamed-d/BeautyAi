@@ -1,95 +1,54 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Calendar, Clock, MapPin, Stethoscope } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { UserRound } from "lucide-react";
+import { BookingSummary } from "@/components/booking/booking-summary";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDateArabic, formatTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/provider";
 import type { BookingDraft } from "@/lib/booking-context";
+import type { Patient } from "@/types/patient";
 
-const patientDetailsSchema = z.object({
-  full_name: z.string().min(2, "الاسم لازم يكون حرفين على الأقل"),
-  phone: z
-    .string()
-    .regex(/^\+?[0-9]{8,15}$/, "رقم الهاتف غير صحيح (8-15 رقم)"),
-  email: z.union([z.string().email("بريد إلكتروني غير صحيح"), z.literal("")]).optional(),
-});
-
-export type PatientDetailsValues = z.infer<typeof patientDetailsSchema>;
-
-/**
- * Combines the appointment summary (step 5 in the brief: "review
- * appointment details") with the minimal patient-details form needed to
- * identify a real Patient row — since Sprint 3 has no backend auth,
- * this form is effectively step 5's "who is this for" question,
- * answered against the real Patients API (see services/patient-service.ts),
- * not an invented login.
- */
+/** Final check before payment: what is being booked, and for whom (the logged-in patient). */
 export function ReviewStep({
   draft,
-  defaultValues,
-  isSubmitting,
-  onSubmit,
+  patient,
+  onContinue,
+  isHolding,
+  failed,
 }: {
   draft: BookingDraft;
-  defaultValues?: Partial<PatientDetailsValues>;
-  isSubmitting: boolean;
-  onSubmit: (values: PatientDetailsValues) => void;
+  patient: Patient;
+  onContinue: () => void;
+  isHolding: boolean;
+  failed: boolean;
 }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<PatientDetailsValues>({
-    resolver: zodResolver(patientDetailsSchema),
-    defaultValues: { full_name: "", phone: "", email: "", ...defaultValues },
-  });
+  const { t } = useI18n();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <p className="mb-3 font-semibold text-ink">ملخص الحجز</p>
-        <dl className="flex flex-col gap-2.5 text-sm">
-          <div className="flex items-center gap-2 text-ink-muted">
-            <Stethoscope className="h-4 w-4" />
-            <dt className="sr-only">الطبيب</dt>
-            <dd className="text-ink">{draft.doctor?.full_name}</dd>
-          </div>
-          <div className="flex items-center gap-2 text-ink-muted">
-            <MapPin className="h-4 w-4" />
-            <dt className="sr-only">العيادة</dt>
-            <dd className="text-ink">{draft.clinic?.name}</dd>
-          </div>
-          {draft.slot && (
-            <>
-              <div className="flex items-center gap-2 text-ink-muted">
-                <Calendar className="h-4 w-4" />
-                <dt className="sr-only">التاريخ</dt>
-                <dd className="text-ink">{formatDateArabic(new Date(draft.slot.start_time))}</dd>
-              </div>
-              <div className="flex items-center gap-2 text-ink-muted">
-                <Clock className="h-4 w-4" />
-                <dt className="sr-only">الوقت</dt>
-                <dd className="text-ink">{formatTime(new Date(draft.slot.start_time))}</dd>
-              </div>
-            </>
-          )}
-        </dl>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <p className="font-semibold text-ink">بياناتك</p>
-        <Input label="الاسم بالكامل" placeholder="اسمك بالكامل" error={errors.full_name?.message} {...register("full_name")} />
-        <Input label="رقم الهاتف" placeholder="01xxxxxxxxx" dir="ltr" error={errors.phone?.message} {...register("phone")} />
-        <Input label="البريد الإلكتروني (اختياري)" placeholder="example@mail.com" dir="ltr" error={errors.email?.message} {...register("email")} />
-
-        <Button type="submit" size="lg" disabled={isSubmitting} className="mt-2">
-          {isSubmitting ? "جاري المتابعة..." : "المتابعة للدفع"}
-        </Button>
-      </form>
+    <div className="flex flex-col gap-2.5">
+      {draft.doctor && draft.clinic && draft.slot && (
+        <BookingSummary doctor={draft.doctor} clinic={draft.clinic} slot={draft.slot} />
+      )}
+      <Card className="flex items-center gap-[11px]">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lavender-soft text-ink">
+          <UserRound className="h-5 w-5" strokeWidth={1.75} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-ink-muted">{t("booking.bookingFor")}</p>
+          <p className="truncate text-sm font-bold text-ink">{patient.full_name}</p>
+          <p className="text-xs text-ink-muted" dir="ltr">
+            {patient.phone}
+          </p>
+        </div>
+      </Card>
+      {failed && (
+        <p role="alert" className="text-sm text-red-700">
+          {t("errors.generic")}
+        </p>
+      )}
+      <Button block className="mt-[5px]" onClick={onContinue} disabled={isHolding}>
+        {isHolding ? t("booking.holding") : t("booking.continueToPayment")}
+      </Button>
     </div>
   );
 }

@@ -76,6 +76,7 @@ async def register_doctor(db: AsyncSession, data: DoctorRegisterRequest) -> tupl
         medical_degree=data.medical_degree,
         university=data.university,
         city=data.city,
+        avatar=data.avatar,
         email=email,
         phone=phone,
         verification_status=VerificationStatus.PENDING,

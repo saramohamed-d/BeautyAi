@@ -190,6 +190,7 @@ async def find_options(
             "doctor": {
                 "id": str(row.Doctor.id), "full_name": row.Doctor.full_name, "specialty": row.Doctor.specialty,
                 "rating": float(row.Doctor.rating) if row.Doctor.rating is not None else None,
+                "avatar": row.Doctor.avatar,
             },
             "clinic": {"id": str(row.Clinic.id), "name": row.Clinic.name, "city": row.Clinic.city},
             # What the patient will pay for this consultation (null: the clinic confirms it).

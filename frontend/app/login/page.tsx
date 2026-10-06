@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/provider";
 import { safeNext, withNext } from "@/lib/safe-next";
+import { HOME, audienceOf, isPatientArea } from "@/lib/roles";
 import { ApiError } from "@/lib/api-client";
 
 const schema = z.object({
@@ -41,16 +42,11 @@ function LoginContent() {
     setError(null);
     try {
       const me = await login(values.identifier, values.password);
-      // Staff without a `next` belong on their own dashboard, not the patient home.
-      const home =
-        me.user.role === "platform_admin"
-          ? "/admin"
-          : me.user.role === "doctor"
-            ? "/doctor"
-            : (me.clinics ?? []).length > 0
-              ? "/clinic"
-              : safeNext(null);
-      router.push(next ? safeNext(next) : home);
+      // Everyone lands on their own home (lib/roles.ts); staff never land on the patient side.
+      const audience = audienceOf(me);
+      const target = next ? safeNext(next) : HOME[audience];
+      const staff = audience !== "patient";
+      router.push(staff && isPatientArea(target) ? HOME[audience] : target);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) setError(t("login.invalid"));
       else if (err instanceof ApiError && err.status === 403) setError(t("login.blocked"));
@@ -65,15 +61,8 @@ function LoginContent() {
       </div>
 
       <div className="pt-8 text-center md:pt-4">
-        <Logo />
-        <div className="mx-auto my-6 grid h-[82px] w-[82px] place-items-center rounded-[28px] bg-primary-soft text-[40px]" aria-hidden="true">
-          🌸
-        </div>
-        <h1 className="text-[25px] font-bold leading-tight text-ink">
-          {t("login.welcomeLine1")}
-          <br />
-          {t("login.welcomeLine2")}
-        </h1>
+        <Logo className="mx-auto" />
+        <h1 className="mt-8 font-display text-[32px] font-semibold leading-tight text-ink">{t("login.welcomeBack")}</h1>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">{t("login.subtitle")}</p>
       </div>
 

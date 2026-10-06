@@ -214,6 +214,7 @@ async def seed() -> None:
         dr_amira = Doctor(
             user_id=user_amira.id,
             full_name="د. أميرة حسن",
+            avatar="woman-3",
             specialty="Dermatology",
             bio="استشارية الأمراض الجلدية والتجميل، خبرة 12 عامًا في علاجات الليزر وحقن الفيلر.",
             years_experience=12,
@@ -224,6 +225,7 @@ async def seed() -> None:
         )
         dr_khaled = Doctor(
             full_name="د. خالد إبراهيم",
+            avatar="man-1",
             specialty="Aesthetic Medicine",
             bio="أخصائي طب التجميل، متخصص في البوتوكس وشد الوجه بدون جراحة.",
             years_experience=8,
@@ -235,6 +237,7 @@ async def seed() -> None:
         dr_mona = Doctor(
             user_id=user_mona.id,
             full_name="د. منى الشريف",
+            avatar="woman-1",
             specialty="Dermatology",
             bio="أخصائية جلدية، حديثة التخرج، تنتظر استكمال إجراءات التوثيق.",
             years_experience=3,

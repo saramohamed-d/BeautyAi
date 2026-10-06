@@ -43,6 +43,10 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-beautyai}:${POSTGRES_PASSWORD:-beautyai}@postgres:5432/${POSTGRES_DB:-beautyai}
       DATABASE_URL_SYNC: postgresql+psycopg2://${POSTGRES_USER:-beautyai}:${POSTGRES_PASSWORD:-beautyai}@postgres:5432/${POSTGRES_DB:-beautyai}
       REDIS_URL: redis://redis:6379/0
+      # Ollama runs on the host machine, not in a container.
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
     volumes:

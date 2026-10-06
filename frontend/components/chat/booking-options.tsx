@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Star } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { Button } from "@/components/ui/button";
 import { useChatActions } from "@/components/chat/chat-actions";
 import { useBookingContext } from "@/lib/booking-context";
@@ -47,7 +47,7 @@ export function BookingOptions({ offer, conversationId }: { offer: BookingOffer;
         return (
           <div key={option.availability_id} className="rounded-card border border-border bg-surface p-3">
             <div className="flex items-start gap-[11px]">
-              <Avatar name={option.doctor.full_name} />
+              <DoctorAvatar avatar={option.doctor.avatar} />
               <div className="min-w-0 flex-1 text-xs text-ink-muted">
                 <p dir="auto" className="text-sm font-bold text-ink">{option.doctor.full_name}</p>
                 <p className="mt-0.5 flex items-center gap-1">

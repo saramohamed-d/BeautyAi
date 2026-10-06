@@ -7,7 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Page } from "@/components/layout/page";
-import { PageHeader } from "@/components/layout/page-header";
+import { Logo } from "@/components/layout/logo";
+import { AccountTypeToggle } from "@/components/auth/account-type-toggle";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,9 +55,12 @@ function SignupContent() {
 
   return (
     <Page width="narrow" className="pb-12">
-      <PageHeader title={t("signup.title")} backHref={withNext("/login", next)} />
-      <h2 className="text-[25px] font-bold leading-tight text-ink">{t("signup.heading")}</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-muted">{t("signup.subtitle")}</p>
+      <div className="text-center">
+        <Logo className="mx-auto" />
+        <h1 className="mt-6 font-display text-[30px] font-semibold leading-tight text-ink">{t("signup.heading")}</h1>
+        <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-ink-muted">{t("signup.subtitle")}</p>
+      </div>
+      <AccountTypeToggle current="patient" />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Card className="mt-4 flex flex-col gap-3">
@@ -108,12 +112,6 @@ function SignupContent() {
       </form>
 
       <p className="mt-4 text-center text-sm text-ink-muted">
-        {t("doctorSignup.doctorPrompt")}{" "}
-        <Link href="/signup/doctor" className="font-semibold text-primary-dark hover:underline">
-          {t("doctorSignup.doctorLink")}
-        </Link>
-      </p>
-      <p className="mt-3 text-center text-sm text-ink-muted">
         {t("signup.haveAccount")}{" "}
         <Link href={withNext("/login", next)} className="font-semibold text-primary-dark hover:underline">
           {t("signup.signIn")}

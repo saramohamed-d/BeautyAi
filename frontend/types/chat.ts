@@ -47,7 +47,7 @@ export interface BookingOption {
   availability_id: string;
   start_time: string;
   end_time: string;
-  doctor: { id: string; full_name: string; specialty: string; rating: number | null };
+  doctor: { id: string; full_name: string; specialty: string; rating: number | null; avatar?: string | null };
   clinic: { id: string; name: string; city: string };
   /** The consultation fee at this clinic; null when the clinic confirms it. */
   consultation_fee: number | null;

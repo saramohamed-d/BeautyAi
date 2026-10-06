@@ -32,7 +32,7 @@ and dermatology doctors and clinics in Egypt and the Arab world.
 ## Stack
 
 - **Backend:** Python 3.12, FastAPI, SQLAlchemy (async), Alembic, PostgreSQL (pgvector), Redis
-- **AI:** OpenAI Responses API (structured output) behind a provider interface; an offline demo provider for local development. See [`docs/agents.md`](docs/agents.md)
+- **AI:** OpenAI Responses API (structured output) behind a provider interface; a free local model through [Ollama](https://ollama.com) (`AI_PROVIDER=ollama`, the default in `.env.example`) and an offline demo provider for local development. See [`docs/agents.md`](docs/agents.md)
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, TanStack Query
 - **Infra:** Docker Compose
 
@@ -62,7 +62,16 @@ beautyai/
    cp .env.example .env
    ```
 
-2. Start everything:
+2. The AI chat uses a local model through Ollama (no API key, no tokens to
+   run out). Install Ollama and pull the model once:
+
+   ```bash
+   ollama pull qwen2.5:3b
+   ```
+
+   Set `AI_PROVIDER=demo` in `.env` instead if you don't want a local model.
+
+3. Start everything:
 
    ```bash
    cd infra
@@ -77,7 +86,7 @@ beautyai/
    - `backend` (FastAPI, hot-reload, on port `8000`)
    - `frontend` (Next.js dev server, hot-reload, on port `3000`)
 
-3. Visit:
+4. Visit:
    - Frontend: http://localhost:3000
    - Backend root: http://localhost:8000
    - Backend health check: http://localhost:8000/api/v1/health

@@ -8,7 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ShieldCheck } from "lucide-react";
 import { Page } from "@/components/layout/page";
-import { PageHeader } from "@/components/layout/page-header";
+import { Logo } from "@/components/layout/logo";
+import { AccountTypeToggle } from "@/components/auth/account-type-toggle";
+import { AvatarPicker } from "@/components/doctors/avatar-picker";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,7 @@ const schema = z.object({
   medical_degree: z.string().trim().max(255).optional().or(z.literal("")),
   university: z.string().trim().max(255).optional().or(z.literal("")),
   city: z.string().trim().max(128).optional().or(z.literal("")),
+  avatar: z.string().optional(),
 });
 type FormValues = z.input<typeof schema>;
 
@@ -52,8 +55,11 @@ export default function DoctorSignupPage() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const avatar = watch("avatar");
 
   async function onSubmit(values: FormValues) {
     setError(null);
@@ -74,9 +80,12 @@ export default function DoctorSignupPage() {
 
   return (
     <Page width="narrow" className="pb-12">
-      <PageHeader title={t("doctorSignup.title")} backHref="/login" />
-      <h2 className="text-[25px] font-bold leading-tight text-ink">{t("doctorSignup.heading")}</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-muted">{t("doctorSignup.subtitle")}</p>
+      <div className="text-center">
+        <Logo className="mx-auto" />
+        <h1 className="mt-6 font-display text-[30px] font-semibold leading-tight text-ink">{t("doctorSignup.heading")}</h1>
+        <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-ink-muted">{t("doctorSignup.subtitle")}</p>
+      </div>
+      <AccountTypeToggle current="doctor" />
 
       <Notice className="mt-4 flex items-start gap-2">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary-dark" aria-hidden="true" />
@@ -159,6 +168,10 @@ export default function DoctorSignupPage() {
             {...register("university")}
           />
           <Input label={t("doctorSignup.city")} placeholder={t("doctorSignup.cityPlaceholder")} {...register("city")} />
+        </Card>
+
+        <Card className="mt-2.5">
+          <AvatarPicker value={avatar} onChange={(key) => setValue("avatar", key)} />
         </Card>
 
         {error && (

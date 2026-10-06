@@ -9,6 +9,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { AccountSecurity } from "@/components/account/account-security";
 import { NotificationPreferences } from "@/components/account/notification-preferences";
 import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, LinkButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -72,14 +73,18 @@ export default function AccountPage() {
     );
   }
 
-  const displayName = patient?.full_name ?? user.email ?? user.phone ?? "";
+  const displayName = patient?.full_name ?? doctor?.full_name ?? user.email ?? user.phone ?? "";
 
   return (
     <Page width="narrow">
       <PageHeader title={t("profile.title")} backHref="/" />
       <div className="text-center">
-        <Avatar name={displayName} size="lg" className="mx-auto my-6" />
-        <h2 className="text-xl font-bold text-ink">{displayName}</h2>
+        {doctor ? (
+          <DoctorAvatar avatar={doctor.avatar} size="xl" className="mx-auto my-6 shadow-card" />
+        ) : (
+          <Avatar name={displayName} size="lg" className="mx-auto my-6" />
+        )}
+        <h2 className="font-display text-2xl font-semibold text-ink">{displayName}</h2>
         <p className="mt-1 text-xs text-ink-muted" dir="ltr">
           {user.email ?? user.phone}
         </p>

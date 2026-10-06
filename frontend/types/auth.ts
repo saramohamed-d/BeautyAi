@@ -52,4 +52,5 @@ export interface DoctorRegisterInput {
   medical_degree?: string;
   university?: string;
   city?: string;
+  avatar?: string;
 }

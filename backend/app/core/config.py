@@ -64,7 +64,8 @@ class Settings(BaseSettings):
     # --- AI (Sprint 7) ---
     # "demo" is a deterministic, offline stand-in for local development and
     # tests (no API key, no cost). Staging/production must use a real model.
-    ai_provider: Literal["openai", "demo"] = "demo"
+    # "ollama" runs a local model (free, no token budget) — local development only.
+    ai_provider: Literal["openai", "ollama", "demo"] = "demo"
     openai_api_key: str | None = None
     # No default on purpose: pick and pin the model explicitly per environment.
     openai_model: str | None = None
@@ -72,6 +73,11 @@ class Settings(BaseSettings):
     # the chat; with "openai" the model must be named explicitly (e.g.
     # text-embedding-3-small). Vectors are always 1536-dimensional.
     openai_embedding_model: str | None = None
+    # Ollama: where it listens and which pulled model to use (`ollama list`).
+    # From inside Docker use http://host.docker.internal:11434.
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:3b"
+    ollama_num_ctx: int = 8192
     ai_timeout_seconds: float = 30.0
     # Where data/knowledge/ lives (Markdown articles). Default: the repo's data folder.
     knowledge_dir: str | None = None

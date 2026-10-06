@@ -137,6 +137,12 @@ messages.** Emergency number used: 123 (Egypt ambulance).
     (`AssistantDraft` in `app/agents/schemas.py`: reply, intake_update,
     assessment, booking_request, risk_level, cited_sources), `store=False` (the provider keeps
     no copy) and a hashed user id as `safety_identifier`.
+  - `OllamaProvider`: a local model served by [Ollama](https://ollama.com),
+    free and with no token budget to run out. Calls Ollama's `/api/chat`
+    with the same `AssistantDraft` JSON schema as `format`. Local
+    development and demos only. On a laptop with a 4 GB GPU, `qwen2.5:3b`
+    answers in ~20 s and `qwen2.5:7b` in ~1 min (each reply is ~240 tokens
+    of JSON); the knowledge search keeps using the offline demo embedder.
   - `DemoProvider` (`app/agents/demo_llm.py`): deterministic and offline,
     for local development and tests. The UI shows a "Demo mode" badge.
 - **Only message text is sent.** No names, phone numbers, emails or ids
@@ -145,11 +151,14 @@ messages.** Emergency number used: 123 (Egypt ambulance).
 
   | Variable | Default | Notes |
   |---|---|---|
-  | `AI_PROVIDER` | `demo` | Must be `openai` in staging/production (startup check) |
+  | `AI_PROVIDER` | `demo` | `openai`, `ollama` or `demo`. Must be `openai` in staging/production (startup check) |
+  | `OLLAMA_BASE_URL` | `http://localhost:11434` | `http://host.docker.internal:11434` from inside Docker |
+  | `OLLAMA_MODEL` | `qwen2.5:3b` | Any model from `ollama list` |
+  | `OLLAMA_NUM_CTX` | 8192 | Context window, in tokens |
   | `OPENAI_API_KEY` | – | Required for `openai` |
   | `OPENAI_MODEL` | – | Required for `openai`; no default on purpose, so the model is chosen and pinned deliberately |
   | `OPENAI_EMBEDDING_MODEL` | – | Required for `openai`; knowledge search embeddings (see [`rag.md`](rag.md)) |
-  | `AI_TIMEOUT_SECONDS` | 30 | |
+  | `AI_TIMEOUT_SECONDS` | 30 | Use ~180 with `ollama` |
   | `CLINIC_TIMEZONE` | `Africa/Cairo` | Local time for booking requests and time-of-day filters |
   | `CHAT_MAX_MESSAGE_CHARS` | 2000 | |
   | `CHAT_MESSAGES_PER_HOUR` | 30 | Per patient |

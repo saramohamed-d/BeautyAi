@@ -78,7 +78,7 @@ export default function ReschedulePage() {
           <CalendarCheck className="h-9 w-9" strokeWidth={1.75} />
         </div>
         <p className="mb-5 text-center text-sm text-ink">{t("reschedule.done")}</p>
-        <AppointmentCard appointment={reschedule.data} doctorName={doctor?.full_name ?? "—"} clinicName={clinicName(reschedule.data.clinic_id)} />
+        <AppointmentCard appointment={reschedule.data} doctorName={doctor?.full_name ?? "—"} doctorAvatar={doctor?.avatar} clinicName={clinicName(reschedule.data.clinic_id)} />
         <LinkButton href="/appointments" block className="mt-[15px]">
           {t("reschedule.back")}
         </LinkButton>
@@ -92,7 +92,7 @@ export default function ReschedulePage() {
     <Page width="narrow">
       {header}
       <p className="mb-2 text-sm font-bold text-ink">{t("reschedule.current")}</p>
-      <AppointmentCard appointment={appointment} doctorName={doctor?.full_name ?? "—"} clinicName={clinicName(appointment.clinic_id)} />
+      <AppointmentCard appointment={appointment} doctorName={doctor?.full_name ?? "—"} doctorAvatar={doctor?.avatar} clinicName={clinicName(appointment.clinic_id)} />
 
       {!allowed ? (
         <Notice className="mt-4">{errorCode === "cancellation_window_closed" ? t("appointments.windowClosed") : t("reschedule.notAllowed")}</Notice>

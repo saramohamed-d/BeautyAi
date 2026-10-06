@@ -5,9 +5,19 @@ import { BookOpen, Phone, Siren } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { AssessmentCard } from "@/components/consultation/assessment-card";
 import { BookingOptions } from "@/components/chat/booking-options";
+import { LotusMark } from "@/components/layout/logo";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";
+
+/** The assistant's round lotus badge, shown next to its messages. */
+export function AssistantIcon({ className }: { className?: string }) {
+  return (
+    <span aria-hidden="true" className={cn("grid shrink-0 place-items-center rounded-full bg-white shadow-card", className)}>
+      <LotusMark className="h-[60%] w-[60%]" />
+    </span>
+  );
+}
 
 /**
  * One chat bubble. Assistant messages are rendered by their `kind`
@@ -45,13 +55,13 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
   const suggestion = !isUser && !assessment ? extra?.suggestion : null;
   const sources = !isUser ? extra?.sources ?? [] : [];
 
-  return (
-    <div className={cn("flex max-w-[85%] flex-col gap-2", isUser ? "ms-auto items-end" : "me-auto items-start")}>
+  const body = (
+    <div className={cn("flex min-w-0 flex-col gap-2", isUser ? "max-w-[85%] items-end" : "flex-1 items-start")}>
       <p
         dir="auto"
         className={cn(
           "whitespace-pre-line rounded-[18px] px-[14px] py-2.5 text-sm leading-relaxed",
-          isUser ? "rounded-ee-md bg-primary text-white" : "rounded-es-md border border-border bg-surface text-ink",
+          isUser ? "rounded-ee-md bg-primary text-white" : "rounded-ss-md border border-border bg-surface text-ink shadow-card",
           extra?.kind === "fallback" && "text-ink-muted"
         )}
       >
@@ -77,7 +87,7 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
       )}
       {!isUser && extra?.booking && <BookingOptions offer={extra.booking} conversationId={message.conversation_id} />}
       {suggestion && (
-        <div className="w-full rounded-card bg-gradient-to-br from-lavender-soft to-surface p-3">
+        <div className="w-full rounded-card bg-gradient-to-br from-blush to-surface p-3">
           <p className="text-xs text-ink-muted">{t("chat.suggested")}</p>
           <p className="text-sm font-bold text-ink">{label("specialties", suggestion.specialty)}</p>
           <div className="mt-2.5 flex flex-wrap gap-2">
@@ -90,6 +100,14 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  if (isUser) return <div className="ms-auto flex max-w-[85%] justify-end">{body}</div>;
+  return (
+    <div className="me-auto flex w-full max-w-[92%] items-start gap-2">
+      <AssistantIcon className="mt-0.5 h-8 w-8" />
+      {body}
     </div>
   );
 }

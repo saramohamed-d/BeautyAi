@@ -41,6 +41,8 @@ class Doctor(Base, UUIDPkMixin, TimestampMixin):
     university: Mapped[str | None] = mapped_column(String(255), nullable=True)
     city: Mapped[str | None] = mapped_column(String(128), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Key of an illustrated avatar drawn by the frontend, e.g. "woman-2"; null = neutral default.
+    avatar: Mapped[str | None] = mapped_column(String(32), nullable=True)
     years_experience: Mapped[int | None] = mapped_column(nullable=True)
     rating: Mapped[float | None] = mapped_column(Numeric(3, 2), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)

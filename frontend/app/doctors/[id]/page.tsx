@@ -5,7 +5,7 @@ import Link from "next/link";
 import { GraduationCap, MapPin, ShieldCheck, Star } from "lucide-react";
 import { Page } from "@/components/layout/page";
 import { PageHeader } from "@/components/layout/page-header";
-import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
@@ -30,9 +30,9 @@ export default function DoctorDetailPage() {
 
       {doctor && (
         <>
-          <div className="text-center">
-            <Avatar name={doctor.full_name} size="lg" className="mx-auto my-6" />
-            <h2 className="text-xl font-bold text-ink">{doctor.full_name}</h2>
+          <div className="rounded-card bg-gradient-to-b from-blush to-transparent px-4 pb-2 pt-6 text-center">
+            <DoctorAvatar avatar={doctor.avatar} size="xl" className="mx-auto mb-4 shadow-card" />
+            <h2 className="font-display text-2xl font-semibold text-ink">{doctor.full_name}</h2>
             <p className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-ink-muted">
               <span>{label("specialties", doctor.specialty)}</span>
               {doctor.rating != null && (

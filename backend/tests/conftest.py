@@ -22,6 +22,8 @@ os.environ["APP_ENV"] = "test"
 # The suite signs hundreds of patients up from one address; the limiter is
 # exercised deliberately in tests/test_account_security.py instead.
 os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+# Tests use the offline demo AI, even when a local .env picks Ollama or OpenAI.
+os.environ["AI_PROVIDER"] = "demo"
 
 from collections.abc import AsyncGenerator
 

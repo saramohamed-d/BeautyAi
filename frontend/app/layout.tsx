@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Cairo, DM_Sans } from "next/font/google";
+import { Cairo, DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/app/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { RoleRedirect } from "@/components/layout/role-redirect";
 import { DEFAULT_LOCALE, directionFor, isLocale, LOCALE_COOKIE } from "@/lib/i18n/config";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -45,11 +53,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
 
   return (
-    <html lang={locale} dir={directionFor(locale)} className={`${dmSans.variable} ${cairo.variable}`}>
+    <html lang={locale} dir={directionFor(locale)} className={`${dmSans.variable} ${cairo.variable} ${playfair.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans text-ink antialiased">
         <Providers locale={locale}>
+          <RoleRedirect />
           <Navbar />
-          <main className="mx-auto w-full max-w-[430px] flex-1 bg-bg md:max-w-none md:bg-transparent">{children}</main>
+          <main className="mx-auto w-full max-w-[430px] flex-1 md:max-w-none">{children}</main>
           <Footer />
           <BottomNav />
         </Providers>

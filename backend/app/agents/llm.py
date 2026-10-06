@@ -9,11 +9,14 @@ provider (or adding one) touches only this file. Two implementations:
   `store=False` (the provider keeps no copy of the conversation) and a
   hashed user id for the provider's abuse monitoring. No names, phone
   numbers or other profile data are ever sent, only message text.
+- OllamaProvider: a local model through Ollama (free, no tokens to run
+  out of), for local development and demos.
 - DemoProvider (agents/demo_llm.py): deterministic and offline, for
   local development and tests. Refused outside local/test by config.
 """
 
 import hashlib
+import re
 from functools import lru_cache
 from typing import Protocol
 
@@ -24,7 +27,7 @@ from app.prompts.chat import consultation_block, references_block
 from app.rag.types import Reference
 
 # Re-exported for existing imports.
-__all__ = ["AssistantDraft", "ChatTurn", "LLMError", "LLMProvider", "OpenAIProvider", "get_llm", "anonymous_user_ref"]
+__all__ = ["AssistantDraft", "ChatTurn", "LLMError", "LLMProvider", "OllamaProvider", "OpenAIProvider", "get_llm", "anonymous_user_ref"]
 
 logger = get_logger(__name__)
 
@@ -103,12 +106,92 @@ class OpenAIProvider:
         return draft
 
 
+_ARABIC = re.compile(r"[\u0600-\u06ff]")
+# The system prompt's "Language: ..." paragraph (up to the next blank line).
+_LANGUAGE_RULE = re.compile(r"^Language:.*?(?=\n\n|\Z)", re.MULTILINE | re.DOTALL)
+
+
+class OllamaProvider:
+    """
+    A local model served by Ollama (https://ollama.com) — free, no API key,
+    no token budget. Uses Ollama's native /api/chat with the AssistantDraft
+    JSON schema as `format`, so the reply is still structured output.
+
+    Local models are much slower than a hosted API (seconds per reply on a
+    laptop GPU), so give it a generous AI_TIMEOUT_SECONDS.
+    """
+
+    name = "ollama"
+
+    def __init__(self, base_url: str, model: str, timeout: float, num_ctx: int) -> None:
+        import httpx
+
+        self.model = model
+        self._num_ctx = num_ctx
+        self._client = httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=timeout)
+        self._schema = AssistantDraft.model_json_schema()
+
+    async def respond(
+        self,
+        *,
+        instructions: str,
+        history: list[ChatTurn],
+        references: list[Reference],
+        consultation: ConsultationState,
+        user_ref: str,
+    ) -> AssistantDraft:
+        import httpx
+        from pydantic import ValidationError
+
+        latest = next((turn.content for turn in reversed(history) if turn.role == "user"), "")
+        language = "Arabic" if _ARABIC.search(latest) else "English"
+        if language == "English":
+            # Small local models read the Egyptian-Arabic guidance as "always answer in Arabic".
+            instructions = _LANGUAGE_RULE.sub("Language: reply in English.", instructions)
+
+        messages = [{"role": "system", "content": instructions}]
+        messages += [{"role": turn.role, "content": turn.content} for turn in history]
+        messages.append({"role": "system", "content": consultation_block(consultation)})
+        if references:
+            messages.append({"role": "system", "content": references_block(references)})
+        # ...and drift into the wrong language without a reminder right before they answer.
+        messages.append({
+            "role": "system",
+            "content": f"Write `reply` in {language}, the language of the patient's latest message. "
+            "Answer with a single JSON object matching the given schema.",
+        })
+        try:
+            response = await self._client.post(
+                "/api/chat",
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "format": self._schema,
+                    "stream": False,
+                    "think": False,
+                    # Keep the model loaded between messages so replies after the first are fast.
+                    "keep_alive": "30m",
+                    "options": {"temperature": 0.3, "num_ctx": self._num_ctx, "num_predict": 800},
+                },
+            )
+            response.raise_for_status()
+            content = response.json()["message"]["content"]
+            return AssistantDraft.model_validate_json(content)
+        except (httpx.HTTPError, KeyError, ValueError, ValidationError) as exc:
+            logger.warning("llm.error", provider=self.name, error=type(exc).__name__, detail=str(exc)[:200])
+            raise LLMError(str(exc)) from exc
+
+
 @lru_cache
 def get_llm() -> LLMProvider:
     """FastAPI dependency. Tests override it with a scripted provider."""
     settings = get_settings()
     if settings.ai_provider == "openai":
         return OpenAIProvider(settings.openai_api_key or "", settings.openai_model or "", settings.ai_timeout_seconds)
+    if settings.ai_provider == "ollama":
+        return OllamaProvider(
+            settings.ollama_base_url, settings.ollama_model, settings.ai_timeout_seconds, settings.ollama_num_ctx
+        )
     from app.agents.demo_llm import DemoProvider
 
     return DemoProvider()

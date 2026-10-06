@@ -8,14 +8,14 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-white hover:bg-primary-dark",
+        primary: "bg-primary text-white shadow-pink hover:bg-primary-dark",
         secondary: "border border-primary-line bg-surface text-primary-dark hover:bg-primary-soft",
         soft: "bg-primary-soft text-primary-dark hover:bg-primary-soft/70",
         ghost: "bg-transparent text-ink hover:bg-primary-soft/60",
       },
       size: {
-        sm: "h-9 rounded-xl px-4 text-sm",
-        md: "h-12 rounded-[14px] px-6 text-[15px]",
+        sm: "h-9 rounded-full px-4 text-sm",
+        md: "h-12 rounded-xl px-6 text-[15px]",
       },
       block: { true: "w-full" },
     },

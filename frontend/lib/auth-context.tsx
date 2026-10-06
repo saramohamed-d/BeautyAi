@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { setAccessToken, setRefreshHandler } from "@/lib/api-client";
+import { audienceOf, type Audience } from "@/lib/roles";
 import * as authService from "@/services/auth-service";
 import type { AuthUser, DoctorRegisterInput, Me, RegisterInput, SessionResponse } from "@/types/auth";
 import type { ClinicMembership } from "@/types/clinic";
@@ -20,6 +21,8 @@ interface AuthContextValue {
   doctor: Doctor | null;
   /** Clinics this user administers (role=clinic_admin only). */
   clinics: ClinicMembership[];
+  /** Which side of the app this user belongs to ("guest" when logged out); see lib/roles.ts. */
+  audience: Audience;
   login: (identifier: string, password: string) => Promise<Me>;
   register: (input: RegisterInput) => Promise<Me>;
   registerDoctor: (input: DoctorRegisterInput) => Promise<Me>;
@@ -90,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       patient: me?.patient ?? null,
       doctor: me?.doctor ?? null,
       clinics: me?.clinics ?? [],
+      audience: audienceOf(me),
       login: async (identifier, password) => applySession(await authService.login(identifier, password)),
       register: async (input) => applySession(await authService.register(input)),
       registerDoctor: async (input) => applySession(await authService.registerDoctor(input)),

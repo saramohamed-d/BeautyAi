@@ -9,15 +9,17 @@
 */
 :root {
   --font-body: var(--font-dm-sans), var(--font-cairo);
+  --font-display: var(--font-playfair), var(--font-cairo);
 }
 
 html[lang="ar"] {
   --font-body: var(--font-cairo), var(--font-dm-sans);
+  --font-display: var(--font-cairo), var(--font-playfair);
 }
 
 body {
   min-height: 100dvh;
-  background: linear-gradient(135deg, #f8eef0, #fbf8f5);
+  background: #fff8f9;
 }
 
 @keyframes fadeIn {
@@ -41,7 +43,7 @@ body {
 
 /* Visible keyboard focus ring everywhere, in the brand color. */
 :focus-visible {
-  outline: 2px solid #b9546b;
+  outline: 2px solid #d6336c;
   outline-offset: 2px;
 }
 

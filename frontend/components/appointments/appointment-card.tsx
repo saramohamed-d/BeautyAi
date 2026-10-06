@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { CalendarClock, MapPin } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/provider";
 import type { Appointment, AppointmentStatus } from "@/types/appointment";
@@ -18,11 +18,14 @@ const STATUS_TONE: Record<AppointmentStatus, "primary" | "sage" | "neutral"> = {
 export function AppointmentCard({
   appointment,
   doctorName,
+  doctorAvatar,
   clinicName,
   footer,
 }: {
   appointment: Appointment;
   doctorName: string;
+  /** The doctor's illustrated avatar key, when known. */
+  doctorAvatar?: string | null;
   clinicName: string;
   /** Optional actions shown under the details (e.g. cancel / reschedule). */
   footer?: ReactNode;
@@ -31,9 +34,9 @@ export function AppointmentCard({
   const start = new Date(appointment.scheduled_start);
 
   return (
-    <div className="rounded-card border border-border bg-surface p-3">
+    <div className="rounded-card border border-border bg-surface p-3.5 shadow-card">
       <div className="flex items-center gap-[11px]">
-        <Avatar name={doctorName} />
+        <DoctorAvatar avatar={doctorAvatar} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-ink">{doctorName}</p>
           <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-muted">

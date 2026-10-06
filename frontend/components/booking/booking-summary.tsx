@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, MapPin } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { Card } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/provider";
 import type { Doctor } from "@/types/doctor";
@@ -15,7 +15,7 @@ export function BookingSummary({ doctor, clinic, slot }: { doctor: Doctor; clini
 
   return (
     <Card className="flex items-start gap-[11px]">
-      <Avatar name={doctor.full_name} />
+      <DoctorAvatar avatar={doctor.avatar} />
       <div className="min-w-0 flex-1 text-xs text-ink-muted">
         <p className="text-sm font-bold text-ink">{doctor.full_name}</p>
         <p className="mt-0.5">{label("specialties", doctor.specialty)}</p>

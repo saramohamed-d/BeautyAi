@@ -12,6 +12,8 @@ export interface Doctor {
   university?: string | null;
   city?: string | null;
   bio?: string | null;
+  /** Illustrated avatar key, e.g. "woman-2" (components/doctors/doctor-avatar.tsx); null = neutral. */
+  avatar?: string | null;
   years_experience?: number | null;
   rating?: number | null;
   phone?: string | null;

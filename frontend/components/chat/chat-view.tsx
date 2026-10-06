@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Info, Plus, SendHorizontal, Sparkles } from "lucide-react";
-import { ChatMessageBubble } from "@/components/chat/chat-message";
+import { Info, Plus, SendHorizontal } from "lucide-react";
+import { AssistantIcon, ChatMessageBubble } from "@/components/chat/chat-message";
 import { ChatActionsContext } from "@/components/chat/chat-actions";
 import { ConsultationProgress } from "@/components/consultation/consultation-progress";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,20 @@ import { REQUIRED_FIELDS, type ChatMessage, type Conversation } from "@/types/ch
 
 type ChatError = "consent" | "rate" | "failed";
 const MAX_CHARS = 2000;
+/** After this long the "thinking" line explains that the (local) AI can be slow. */
+const SLOW_AFTER_SECONDS = 8;
+
+/** Seconds since `since` was set, ticking once a second; 0 while it's null. */
+function useElapsed(since: number | null): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (since === null) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [since]);
+  return since === null ? 0 : Math.max(0, Math.floor((now - since) / 1000));
+}
 
 /**
  * The patient's AI consultation. Resumes the latest open conversation; a
@@ -44,6 +58,8 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
   // Required consultation details still missing; null once the consultation is complete.
   const [missing, setMissing] = useState<string[] | null>([...REQUIRED_FIELDS]);
   const [pending, setPending] = useState<string | null>(null);
+  const [pendingSince, setPendingSince] = useState<number | null>(null);
+  const elapsed = useElapsed(pendingSince);
   const [error, setError] = useState<ChatError | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +120,7 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
     }
 
     setPending(trimmed);
+    setPendingSince(Date.now());
     setText("");
     try {
       const turn = await sendChatMessage(active.id, trimmed);
@@ -115,6 +132,7 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
       setText(trimmed);
     } finally {
       setPending(null);
+      setPendingSince(null);
     }
   }
 
@@ -128,10 +146,12 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
   return (
     <ChatActionsContext.Provider value={{ send: (value: string) => void send(value) }}>
     <div className="flex flex-col">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs text-ink-muted">
-          <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {t("chat.disclaimer")}
-        </p>
+      <div className="-mx-[18px] mb-4 flex items-center gap-3 bg-gradient-to-r from-blush to-lavender-soft px-[18px] py-4 md:mx-0 md:rounded-card md:px-5">
+        <AssistantIcon className="h-12 w-12" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-bold text-ink">{t("chat.assistantName")}</h2>
+          <p className="text-xs text-ink-muted">{t("chat.assistantTagline")}</p>
+        </div>
         {conversation && (
           <Button
             size="sm"
@@ -148,6 +168,9 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
           </Button>
         )}
       </div>
+      <p className="mb-3 flex items-center gap-1.5 text-xs text-ink-muted">
+        <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {t("chat.disclaimer")}
+      </p>
 
       {/* Shown once the consultation has started; a patient who only wants to book never sees "0 of 4". */}
       {conversation && missing && missing.length < REQUIRED_FIELDS.length && <ConsultationProgress missing={missing} />}
@@ -160,10 +183,7 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
 
       {messages.length === 0 && !pending && (
         <div className="mb-4 text-center">
-          <div className="mx-auto mb-3 mt-4 grid h-[72px] w-[72px] place-items-center rounded-[26px] bg-lavender-soft text-ink">
-            <Sparkles className="h-8 w-8" strokeWidth={1.5} />
-          </div>
-          <h2 className="text-xl font-bold text-ink">{t("chat.welcomeTitle")}</h2>
+          <h2 className="mt-2 font-display text-2xl font-semibold text-ink">{t("chat.welcomeTitle")}</h2>
           <p className="mx-auto mt-1 max-w-sm text-sm text-ink-muted">{t("chat.welcomeBody")}</p>
 
           {showConsent && (
@@ -203,14 +223,21 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
             <p dir="auto" className="ms-auto max-w-[85%] whitespace-pre-line rounded-[18px] rounded-ee-md bg-primary px-[14px] py-2.5 text-sm text-white opacity-80">
               {pending}
             </p>
-            <p className="me-auto flex items-center gap-2 text-xs text-ink-muted">
-              <span className="flex gap-1" aria-hidden="true">
-                {[0, 150, 300].map((delay) => (
-                  <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary-accent" style={{ animationDelay: `${delay}ms` }} />
-                ))}
-              </span>
-              {t("chat.typing")}
-            </p>
+            <div className="me-auto flex items-end gap-2">
+              <AssistantIcon className="h-8 w-8" />
+              <div className="rounded-[18px] rounded-es-md border border-border bg-surface px-[14px] py-2.5 text-xs text-ink-muted" role="status">
+                <p className="flex items-center gap-2">
+                  <span className="flex gap-1" aria-hidden="true">
+                    {[0, 150, 300].map((delay) => (
+                      <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary-accent" style={{ animationDelay: `${delay}ms` }} />
+                    ))}
+                  </span>
+                  {t("chat.typing")}
+                  {elapsed > 0 && <span className="tabular-nums">{t("chat.elapsed", { seconds: elapsed })}</span>}
+                </p>
+                {elapsed >= SLOW_AFTER_SECONDS && <p className="mt-1">{t("chat.slowHint")}</p>}
+              </div>
+            </div>
           </>
         )}
         {conversation?.status === "escalated" && <Notice className="text-xs">{t("chat.escalated")}</Notice>}
@@ -225,7 +252,7 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
 
       <form
         onSubmit={onSubmit}
-        className="sticky bottom-[88px] mt-4 flex items-end gap-2 rounded-tile border border-border bg-surface p-2 shadow-sm focus-within:border-primary md:bottom-4"
+        className="sticky bottom-[88px] mt-4 flex items-end gap-2 rounded-full border border-border bg-surface p-1.5 ps-3 shadow-card focus-within:border-primary md:bottom-4"
       >
         <textarea
           value={text}
@@ -243,7 +270,7 @@ export function ChatView({ initialText = "" }: { initialText?: string }) {
           aria-label={t("chat.placeholder")}
           className="max-h-32 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-ink-muted/80 focus-visible:outline-none"
         />
-        <Button type="submit" size="sm" className="h-10 w-10 shrink-0 px-0" disabled={!text.trim() || Boolean(pending)} aria-label={t("chat.send")}>
+        <Button type="submit" size="sm" className="h-10 w-10 shrink-0 rounded-full px-0" disabled={!text.trim() || Boolean(pending)} aria-label={t("chat.send")}>
           <SendHorizontal className="h-4 w-4 rtl:rotate-180" />
         </Button>
       </form>

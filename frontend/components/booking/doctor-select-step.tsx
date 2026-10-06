@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, ShieldCheck, Stethoscope } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { DoctorAvatar } from "@/components/doctors/doctor-avatar";
 import { SelectableCard } from "@/components/ui/selectable-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -43,7 +43,7 @@ export function DoctorSelectStep({
 
       {data?.items.map((doctor) => (
         <SelectableCard key={doctor.id} selected={selectedDoctor?.id === doctor.id} onClick={() => onSelect(doctor)}>
-          <Avatar name={doctor.full_name} />
+          <DoctorAvatar avatar={doctor.avatar} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-ink">{doctor.full_name}</p>
             <p className="truncate text-xs text-ink-muted">{label("specialties", doctor.specialty)}</p>

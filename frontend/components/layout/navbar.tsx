@@ -8,59 +8,71 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { LinkButton } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/provider";
-import type { MessageKey } from "@/lib/i18n/types";
+import { HOME, NAV, isActive } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-const LINKS: { href: string; label: MessageKey }[] = [
-  { href: "/doctors", label: "nav.doctors" },
-  { href: "/clinics", label: "nav.clinics" },
-  { href: "/procedures", label: "nav.procedures" },
-  { href: "/learn", label: "nav.learn" },
-  { href: "/consultation", label: "nav.aiConsultation" },
-];
-
-/** Desktop-only top bar. Phones use the bottom tab bar instead (see bottom-nav.tsx). */
+/**
+ * Desktop-only top bar; phones use the bottom tab bar (bottom-nav.tsx).
+ * The links depend on who is logged in (lib/roles.ts): patients and
+ * visitors see the patient app, staff only their own dashboard.
+ */
 export function Navbar() {
   const { t } = useI18n();
-  const { user, patient } = useAuth();
+  const { user, patient, doctor, audience } = useAuth();
   const pathname = usePathname();
+  // Profile sits on the right as the account button, so it's not repeated in the middle.
+  const items = NAV[audience].filter((item) => item.href !== "/account");
+  const name = patient?.full_name ?? doctor?.full_name;
 
   return (
-    <header className="sticky top-0 z-40 hidden border-b border-border bg-bg/90 backdrop-blur md:block">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-6 px-[18px]">
-        <Logo className="text-2xl" />
-        <nav aria-label={t("nav.mainNav")} className="flex items-center gap-6">
-          {LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "text-sm font-medium hover:text-ink",
-                pathname.startsWith(link.href) ? "font-bold text-primary-dark" : "text-ink-muted"
-              )}
-            >
-              {t(link.label)}
+    <header className="sticky top-0 z-40 hidden border-b border-border bg-white/85 backdrop-blur md:block">
+      <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between gap-6 px-6">
+        <Logo href={HOME[audience]} />
+        <nav aria-label={t("nav.mainNav")} className="flex items-center gap-7">
+          {items.map((item) => {
+            const active = isActive(pathname, item, items);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative py-1 text-sm font-medium transition-colors hover:text-primary-dark",
+                  active ? "text-primary-dark after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary" : "text-ink"
+                )}
+              >
+                {t(item.label)}
+              </Link>
+            );
+          })}
+          {audience === "guest" && (
+            <Link href="/#how-it-works" className="py-1 text-sm font-medium text-ink hover:text-primary-dark">
+              {t("nav.howItWorks")}
             </Link>
-          ))}
+          )}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <LanguageToggle />
           {user ? (
             <Link
               href="/account"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-ink hover:border-primary-line"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-surface ps-1 pe-4 text-sm font-semibold text-ink hover:border-primary-line"
             >
-              <UserRound className="h-4 w-4" strokeWidth={1.75} />
-              {patient?.full_name.split(" ")[0] ?? t(`roles.${user.role}`)}
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft text-primary-dark">
+                <UserRound className="h-4 w-4" strokeWidth={1.75} />
+              </span>
+              {name?.split(" ").slice(0, 2).join(" ") ?? t(`roles.${user.role}`)}
             </Link>
           ) : (
-            <Link href="/login" className="px-2 text-sm font-semibold text-ink-muted hover:text-ink">
-              {t("nav.signIn")}
-            </Link>
+            <>
+              <LinkButton href="/login" size="sm" variant="secondary" className="rounded-full px-5">
+                {t("nav.signIn")}
+              </LinkButton>
+              <LinkButton href="/signup" size="sm" className="rounded-full px-5">
+                {t("nav.getStarted")}
+              </LinkButton>
+            </>
           )}
-          <LinkButton href="/booking" size="sm">
-            {t("nav.bookNow")}
-          </LinkButton>
         </div>
       </div>
     </header>

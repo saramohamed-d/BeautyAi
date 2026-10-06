@@ -12,6 +12,10 @@ from app.models.enums import DocumentStatus, DocumentType, VerificationStatus
 from app.schemas.availability import AvailabilityRead
 
 
+# Keys of the illustrated avatars drawn by the frontend (components/ui/avatar.tsx).
+AvatarKey = Literal["woman-1", "woman-2", "woman-3", "woman-4", "woman-5", "man-1", "man-2", "man-3"]
+
+
 class DoctorBase(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=255)
     specialty: str = Field(..., min_length=2, max_length=255)
@@ -21,6 +25,7 @@ class DoctorBase(BaseModel):
     university: str | None = Field(None, max_length=255)
     city: str | None = Field(None, max_length=128)
     bio: str | None = None
+    avatar: AvatarKey | None = None
     years_experience: int | None = Field(None, ge=0, le=80)
     phone: str | None = Field(None, max_length=32)
     email: EmailStr | None = None
@@ -41,6 +46,7 @@ class DoctorUpdate(BaseModel):
     university: str | None = Field(None, max_length=255)
     city: str | None = Field(None, max_length=128)
     bio: str | None = None
+    avatar: AvatarKey | None = None
     years_experience: int | None = Field(None, ge=0, le=80)
     phone: str | None = Field(None, max_length=32)
     email: EmailStr | None = None
@@ -99,6 +105,7 @@ class DoctorRegisterRequest(BaseModel):
     medical_degree: str | None = Field(None, max_length=255)
     university: str | None = Field(None, max_length=255)
     city: str | None = Field(None, max_length=128)
+    avatar: AvatarKey | None = None
 
     @field_validator("phone")
     @classmethod

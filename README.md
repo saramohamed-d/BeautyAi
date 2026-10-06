@@ -25,6 +25,14 @@ and dermatology doctors and clinics in Egypt and the Arab world.
 > accounts and permissions, concurrency-safe booking with holds,
 > cancellation policies and rescheduling, and doctor search.
 >
+> **October 2026 update:** a new pink design (see
+> [`docs/design.md`](docs/design.md)); every user type gets only its own
+> screens (patients browse and book; doctors, clinic admins and platform
+> admins work from their own dashboard and never see the patient side);
+> illustrated avatars for doctors, chosen at sign-up and changeable from
+> the doctor dashboard; and a free local AI model through Ollama, so the
+> chat no longer depends on paid API tokens.
+>
 > **Not deployed anywhere yet** — see
 > [`docs/deployment.md`](docs/deployment.md) for what a real launch still
 > needs (host, TLS, provider accounts, backups, monitoring).
@@ -48,6 +56,12 @@ beautyai/
 ├── .env.example
 └── README.md
 ```
+
+## Running without Docker (WSL)
+
+Step-by-step instructions for running everything directly in WSL
+(PostgreSQL, Ollama, backend on port 8002, frontend on port 3000), with
+test logins and troubleshooting, are in [`RUN_LOCAL.md`](RUN_LOCAL.md).
 
 ## Prerequisites
 
@@ -163,12 +177,16 @@ alembic upgrade head
 APP_ENV=test pytest -v
 ```
 
+The tests always use the offline demo AI (set in `tests/conftest.py`),
+even when `.env` picks Ollama or OpenAI. They write into the same
+database as the app, so reseed afterwards (see `RUN_LOCAL.md`).
+
 `APP_ENV=test` switches the DB engine to a `NullPool` (see
 `app/db/session.py`) so pytest-asyncio's per-test event loops don't reuse
 asyncpg connections across loops — a real (not sqlite/mocked) Postgres
 connection either way.
 
-Expected output: **351 passing tests**, covering health checks, model
+Expected output: **356 passing tests**, covering health checks, model
 constraints, every CRUD endpoint, login/session handling
 (`test_auth_api.py`), role-based permissions (`test_permissions.py`),
 booking rules including concurrency (`test_booking_rules.py`), doctor
